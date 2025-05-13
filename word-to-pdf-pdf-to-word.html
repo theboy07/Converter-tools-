@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Converter</title>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --secondary-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .converter-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .converter-title {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .converter-options {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .converter-btn {
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .converter-btn.active {
+            background-color: #1976D2;
+        }
+
+        .upload-section {
+            background-color: var(--secondary-color);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .file-drop-area {
+            border: 2px dashed var(--primary-color);
+            border-radius: 5px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .file-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .resize-controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .size-input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-width: 200px;
+        }
+
+        .preview-section {
+            background-color: var(--secondary-color);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .preview-placeholder {
+            width: 100%;
+            min-height: 400px;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+
+        .download-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .converter-options {
+                flex-direction: column;
+            }
+
+            .converter-btn {
+                width: 100%;
+            }
+
+            .resize-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="converter-header">
+            <h1 class="converter-title">Document Converter</h1>
+            <div class="converter-options">
+                <button class="converter-btn active">PDF to Word</button>
+                <button class="converter-btn">Word to PDF</button>
+            </div>
+        </div>
+
+        <div class="upload-section">
+            <div class="file-drop-area">
+                <input type="file" class="file-input" accept=".pdf,.doc,.docx">
+                <p>Drag and drop files here or click to upload</p>
+                <p>Supported formats: .pdf, .doc, .docx</p>
+            </div>
+
+            <div class="resize-controls">
+                <input type="number" class="size-input" placeholder="Width (px)">
+                <input type="number" class="size-input" placeholder="Height (px)">
+            </div>
+        </div>
+
+        <div class="preview-section">
+            <h3>Preview</h3>
+            <div class="preview-placeholder">
+                Resized document preview will appear here
+            </div>
+        </div>
+
+        <button class="download-btn">Download Converted File</button>
+    </div>
+
+    <script>
+        // Handle converter type selection
+        const converterBtns = document.querySelectorAll('.converter-btn');
+        converterBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                converterBtns.forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+            });
+        });
+
+        // Handle file input
+        const fileInput = document.querySelector('.file-input');
+        const dropArea = document.querySelector('.file-drop-area');
+
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.style.backgroundColor = '#f0f8ff';
+        });
+
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.style.backgroundColor = 'white';
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.style.backgroundColor = 'white';
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                fileInput.files = files;
+                handleFileSelection(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleFileSelection(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelection(file) {
+            // Add file processing logic here
+            console.log('File selected:', file);
+        }
+
+        // Handle resize inputs
+        const sizeInputs = document.querySelectorAll('.size-input');
+        sizeInputs.forEach(input => {
+            input.addEventListener('input', handleResize);
+        });
+
+        function handleResize() {
+            // Add resize logic here
+            console.log('New dimensions:', 
+                sizeInputs[0].value, 
+                sizeInputs[1].value
+            );
+        }
+
+        // Handle download button
+        document.querySelector('.download-btn').addEventListener('click', () => {
+            // Add download logic here
+            alert('Download functionality would be implemented here');
+        });
+    </script>
+</body>
+</html>
