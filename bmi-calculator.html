@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health & Image Tools</title>
+    <style>
+        :root {
+            --primary-color: #00a8ff;
+            --secondary-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            background-color: var(--secondary-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .tool-section {
+            background: var(--secondary-color);
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        input[type="number"],
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background: #f0f9ff;
+        }
+
+        .image-preview {
+            max-width: 300px;
+            margin: 15px 0;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+        }
+
+        .download-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .tool-section {
+                padding: 15px;
+            }
+            
+            .image-preview {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- BMI Calculator -->
+        <div class="tool-section">
+            <h2>BMI Calculator</h2>
+            <div class="input-group">
+                <label>Weight (kg)</label>
+                <input type="number" id="weight" step="0.1">
+            </div>
+            <div class="input-group">
+                <label>Height (cm)</label>
+                <input type="number" id="height" step="0.1">
+            </div>
+            <button onclick="calculateBMI()">Calculate BMI</button>
+            <div class="result" id="bmiResult"></div>
+        </div>
+
+        <!-- Image Compressor -->
+        <div class="tool-section">
+            <h2>Image Compressor</h2>
+            <div class="input-group">
+                <input type="file" id="imageInput" accept="image/*">
+            </div>
+            <button onclick="compressImage()">Compress Image</button>
+            <div id="imagePreview"></div>
+            <div id="compressionResult"></div>
+        </div>
+    </div>
+
+    <script>
+        // BMI Calculator
+        function calculateBMI() {
+            const weight = parseFloat(document.getElementById('weight').value);
+            const height = parseFloat(document.getElementById('height').value) / 100;
+            const result = document.getElementById('bmiResult');
+
+            if (weight && height) {
+                const bmi = weight / (height * height);
+                let category = '';
+
+                if (bmi < 18.5) category = 'Underweight';
+                else if (bmi < 25) category = 'Normal weight';
+                else if (bmi < 30) category = 'Overweight';
+                else category = 'Obese';
+
+                result.innerHTML = `BMI: ${bmi.toFixed(1)} (${category})`;
+                result.style.color = bmi < 18.5 ? '#ff9800' : 
+                                   bmi < 25 ? '#4caf50' : 
+                                   bmi < 30 ? '#ff5722' : '#f44336';
+            } else {
+                result.innerHTML = 'Please enter valid values';
+                result.style.color = 'red';
+            }
+        }
+
+        // Image Compressor
+        let compressedBlob = null;
+
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+            
+            if (FileReader && e.target.files.length) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.className = 'image-preview';
+                    preview.appendChild(img);
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+        function compressImage() {
+            const file = document.getElementById('imageInput').files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+                
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Set canvas dimensions
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    
+                    // Draw image on canvas
+                    ctx.drawImage(img, 0, 0);
+                    
+                    // Compress and create download link
+                    canvas.toBlob(function(blob) {
+                        compressedBlob = blob;
+                        const downloadLink = document.createElement('a');
+                        downloadLink.className = 'download-link';
+                        downloadLink.textContent = 'Download Compressed Image';
+                        downloadLink.href = URL.createObjectURL(blob);
+                        downloadLink.download = 'compressed-image.jpg';
+                        document.getElementById('compressionResult').appendChild(downloadLink);
+                    }, 'image/jpeg', 0.6);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
