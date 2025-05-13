@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Tool - Age Calculator & Image Compressor</title>
+    <style>
+        :root {
+            --primary-color: #0099ff;
+            --secondary-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: var(--secondary-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .tool-section {
+            background: var(--secondary-color);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        h1, h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        input[type="date"], input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e6f4ff;
+            border-left: 4px solid var(--primary-color);
+            border-radius: 5px;
+        }
+
+        .image-preview {
+            max-width: 300px;
+            margin: 20px 0;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .download-link {
+            display: none;
+            margin-top: 10px;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .tool-section {
+                padding: 20px;
+            }
+
+            .image-preview {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Multi-Tool Kit</h1>
+
+        <!-- Age Calculator -->
+        <div class="tool-section">
+            <h2>Age Calculator</h2>
+            <div class="input-group">
+                <input type="date" id="birthdate" required>
+                <button onclick="calculateAge()">Calculate Age</button>
+            </div>
+            <div id="ageResult" class="result-box"></div>
+        </div>
+
+        <!-- Image Compressor -->
+        <div class="tool-section">
+            <h2>Image Compressor</h2>
+            <div class="input-group">
+                <input type="file" id="imageInput" accept="image/*">
+                <button onclick="compressImage()">Compress Image</button>
+            </div>
+            <img id="imagePreview" class="image-preview" alt="Preview">
+            <a id="downloadLink" class="download-link" download="compressed-image.jpg">Download Compressed Image</a>
+        </div>
+    </div>
+
+    <script>
+        // Age Calculator Function
+        function calculateAge() {
+            const birthdate = new Date(document.getElementById('birthdate').value);
+            const today = new Date();
+            
+            let years = today.getFullYear() - birthdate.getFullYear();
+            let months = today.getMonth() - birthdate.getMonth();
+            let days = today.getDate() - birthdate.getDate();
+
+            if (days < 0) {
+                months--;
+                days += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+            }
+
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            document.getElementById('ageResult').innerHTML = `
+                Your age is: 
+                <strong>${years}</strong> years, 
+                <strong>${months}</strong> months, and 
+                <strong>${days}</strong> days
+            `;
+        }
+
+        // Image Compressor Functions
+        const imageInput = document.getElementById('imageInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const downloadLink = document.getElementById('downloadLink');
+
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.style.display = 'block';
+                    imagePreview.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function compressImage() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                canvas.toBlob((blob) => {
+                    const compressedUrl = URL.createObjectURL(blob);
+                    downloadLink.href = compressedUrl;
+                    downloadLink.style.display = 'block';
+                }, 'image/jpeg', 0.7);
+            };
+
+            img.src = imagePreview.src;
+        }
+    </script>
+</body>
+</html>
