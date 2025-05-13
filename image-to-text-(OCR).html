@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image OCR Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #007bff;
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #007bff;
+        }
+
+        .upload-section {
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="file"] {
+            flex: 1;
+            padding: 10px;
+            background: white;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            color: #333;
+        }
+
+        .resize-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            color: #333;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .preview-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #imagePreview {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+        .download-btn {
+            display: none;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .resize-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Image OCR Tool</h1>
+        
+        <div class="upload-section">
+            <div class="input-group">
+                <input type="file" id="imageInput" accept="image/*">
+                <button onclick="processImage()">Convert</button>
+            </div>
+            
+            <div class="resize-controls">
+                <input type="number" id="width" placeholder="Width (px)">
+                <input type="number" id="height" placeholder="Height (px)">
+            </div>
+        </div>
+
+        <div class="preview-container">
+            <div id="previewWrapper"></div>
+            <a id="downloadBtn" class="download-btn" download="resized_image.png">
+                Download Resized Image
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function processImage() {
+            const input = document.getElementById('imageInput');
+            const width = document.getElementById('width').value;
+            const height = document.getElementById('height').value;
+            const previewWrapper = document.getElementById('previewWrapper');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        // Create canvas for resizing
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Set canvas dimensions
+                        canvas.width = width || img.naturalWidth;
+                        canvas.height = height || img.naturalHeight;
+                        
+                        // Draw resized image
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        
+                        // Display preview
+                        previewWrapper.innerHTML = '';
+                        previewWrapper.appendChild(canvas);
+                        
+                        // Enable download button
+                        downloadBtn.style.display = 'inline-block';
+                        downloadBtn.href = canvas.toDataURL('image/png');
+                        downloadBtn.download = `resized_${width}x${height}.png`;
+                    };
+                    img.src = e.target.result;
+                };
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+</body>
+</html>
