@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Reverser | Multi-Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #007bff;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .tool-header {
+            text-align: center;
+            color: white;
+            padding: 30px 0;
+        }
+
+        .tool-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .tool-container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            resize: vertical;
+            min-height: 150px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            flex-grow: 1;
+        }
+
+        button:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        #outputText {
+            background-color: #f8f9fa;
+            min-height: 150px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .tool-header h1 {
+                font-size: 2rem;
+            }
+
+            .tool-container {
+                padding: 20px;
+            }
+
+            button {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tool-header">
+            <h1>Text Reverser</h1>
+            <p>Reverse any text instantly!</p>
+        </div>
+
+        <div class="tool-container">
+            <div class="input-group">
+                <textarea id="inputText" placeholder="Enter your text here..."></textarea>
+                <div class="button-group">
+                    <button onclick="reverseText()">Reverse Text</button>
+                    <button onclick="copyToClipboard()">Copy Result</button>
+                    <button onclick="clearText()">Clear</button>
+                </div>
+            </div>
+            <div id="outputText"></div>
+        </div>
+    </div>
+
+    <script>
+        function reverseText() {
+            const inputText = document.getElementById('inputText').value;
+            const reversedText = inputText.split('').reverse().join('');
+            document.getElementById('outputText').textContent = reversedText;
+        }
+
+        function copyToClipboard() {
+            const outputText = document.getElementById('outputText');
+            const textArea = document.createElement('textarea');
+            textArea.value = outputText.textContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Copied to clipboard!');
+        }
+
+        function clearText() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('outputText').textContent = '';
+        }
+    </script>
+</body>
+</html>
