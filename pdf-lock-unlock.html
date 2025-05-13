@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Tools - Lock/Unlock & Resize</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --background-color: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 20px;
+            background-color: var(--background-color);
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .tool-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .tool-header h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .upload-section {
+            border: 2px dashed var(--primary-color);
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            background-color: rgba(33, 150, 243, 0.05);
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            background-color: #1976D2;
+        }
+
+        .dimension-controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .dimension-input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        .preview-section {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        #pdf-preview {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .processing-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .download-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem;
+                padding: 10px;
+            }
+
+            .dimension-controls {
+                grid-template-columns: 1fr;
+            }
+
+            #pdf-preview {
+                height: 300px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tool-header">
+            <h1>PDF Tools</h1>
+            <p>Secure and resize your PDF documents</p>
+        </div>
+
+        <div class="upload-section">
+            <input type="file" id="file-input" accept="application/pdf">
+            <button class="upload-btn" onclick="document.getElementById('file-input').click()">
+                Upload PDF File
+            </button>
+            <p id="file-name" style="margin-top: 1rem;"></p>
+        </div>
+
+        <div class="dimension-controls">
+            <input type="number" id="width" class="dimension-input" placeholder="Width (px)">
+            <input type="number" id="height" class="dimension-input" placeholder="Height (px)">
+        </div>
+
+        <div class="action-buttons">
+            <button class="processing-btn" onclick="processPDF()">Process PDF</button>
+            <button class="download-btn" onclick="downloadPDF()" disabled id="download-btn">Download PDF</button>
+        </div>
+
+        <div class="preview-section">
+            <h3>PDF Preview</h3>
+            <embed id="pdf-preview" type="application/pdf">
+        </div>
+    </div>
+
+    <script>
+        let modifiedPdf = null;
+
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('file-name').textContent = file.name;
+                previewPDF(file);
+            }
+        });
+
+        async function previewPDF(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const pdfViewer = document.getElementById('pdf-preview');
+                pdfViewer.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+
+        async function processPDF() {
+            const file = document.getElementById('file-input').files[0];
+            const width = document.getElementById('width').value;
+            const height = document.getElementById('height').value;
+
+            if (!file) {
+                alert('Please select a PDF file first!');
+                return;
+            }
+
+            try {
+                const pdfData = await file.arrayBuffer();
+                const pdfDoc = await PDFLib.PDFDocument.load(pdfData);
+                const pages = pdfDoc.getPages();
+
+                pages.forEach(page => {
+                    page.setSize(
+                        parseFloat(width) || page.getWidth(),
+                        parseFloat(height) || page.getHeight()
+                    );
+                });
+
+                const modifiedPdfBytes = await pdfDoc.save();
+                modifiedPdf = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
+                
+                document.getElementById('download-btn').disabled = false;
+                previewPDF(modifiedPdf);
+                alert('PDF processed successfully!');
+            } catch (error) {
+                alert('Error processing PDF: ' + error.message);
+            }
+        }
+
+        function downloadPDF() {
+            if (modifiedPdf) {
+                const url = URL.createObjectURL(modifiedPdf);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'modified-document.pdf';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+    </script>
+</body>
+  </html>
