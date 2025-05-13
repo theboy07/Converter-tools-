@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Tool - Calculator & Image Compressor</title>
+    <style>
+        :root {
+            --primary-color: #00a8ff;
+            --background-color: #f5f6fa;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            padding: 20px;
+        }
+
+        .tool-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .tool-tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .tool-tab {
+            padding: 15px 30px;
+            background: #e6f4ff;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--primary-color);
+            border-radius: 8px;
+            margin-right: 10px;
+            transition: all 0.3s;
+        }
+
+        .tool-tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Calculator Styles */
+        .calculator {
+            display: none;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .calculator.active {
+            display: grid;
+        }
+
+        #calc-display {
+            grid-column: 1 / -1;
+            height: 60px;
+            font-size: 24px;
+            padding: 15px;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: right;
+        }
+
+        .calc-btn {
+            padding: 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            background: #e6f4ff;
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .calc-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Image Compressor Styles */
+        .image-compressor {
+            display: none;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .image-compressor.active {
+            display: block;
+        }
+
+        .upload-container {
+            border: 2px dashed var(--primary-color);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #image-preview {
+            max-width: 100%;
+            max-height: 400px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .compression-controls {
+            margin-top: 20px;
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        .download-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: opacity 0.3s;
+        }
+
+        .download-btn:hover {
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            .calculator {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .calc-btn {
+                padding: 15px;
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tool-tab {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            .calculator {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="tool-container">
+        <div class="tool-tabs">
+            <button class="tool-tab active" onclick="switchTab('calculator')">Calculator</button>
+            <button class="tool-tab" onclick="switchTab('compressor')">Image Compressor</button>
+        </div>
+
+        <!-- Scientific Calculator -->
+        <div class="calculator active" id="calculator">
+            <input type="text" id="calc-display" readonly>
+            <button class="calc-btn" onclick="clearDisplay()">C</button>
+            <button class="calc-btn" onclick="appendToDisplay('(')">(</button>
+            <button class="calc-btn" onclick="appendToDisplay(')')">)</button>
+            <button class="calc-btn" onclick="appendToDisplay('/')">/</button>
+            <button class="calc-btn" onclick="appendToDisplay('7')">7</button>
+            <button class="calc-btn" onclick="appendToDisplay('8')">8</button>
+            <button class="calc-btn" onclick="appendToDisplay('9')">9</button>
+            <button class="calc-btn" onclick="appendToDisplay('*')">×</button>
+            <button class="calc-btn" onclick="appendToDisplay('4')">4</button>
+            <button class="calc-btn" onclick="appendToDisplay('5')">5</button>
+            <button class="calc-btn" onclick="appendToDisplay('6')">6</button>
+            <button class="calc-btn" onclick="appendToDisplay('-')">-</button>
+            <button class="calc-btn" onclick="appendToDisplay('1')">1</button>
+            <button class="calc-btn" onclick="appendToDisplay('2')">2</button>
+            <button class="calc-btn" onclick="appendToDisplay('3')">3</button>
+            <button class="calc-btn" onclick="appendToDisplay('+')">+</button>
+            <button class="calc-btn" onclick="appendToDisplay('0')">0</button>
+            <button class="calc-btn" onclick="appendToDisplay('.')">.</button>
+            <button class="calc-btn" onclick="calculate()">=</button>
+            <button class="calc-btn" onclick="appendToDisplay('Math.sin(')">sin</button>
+            <button class="calc-btn" onclick="appendToDisplay('Math.cos(')">cos</button>
+            <button class="calc-btn" onclick="appendToDisplay('Math.tan(')">tan</button>
+            <button class="calc-btn" onclick="appendToDisplay('Math.log(')">ln</button>
+            <button class="calc-btn" onclick="appendToDisplay('Math.sqrt(')">√</button>
+            <button class="calc-btn" onclick="appendToDisplay('**')">^</button>
+            <button class="calc-btn" onclick="appendToDisplay('Math.PI')">π</button>
+        </div>
+
+        <!-- Image Compressor -->
+        <div class="image-compressor" id="compressor">
+            <div class="upload-container">
+                <input type="file" id="image-input" accept="image/*" onchange="handleImageUpload(event)">
+                <p>Drag and drop or click to upload an image</p>
+                <img id="image-preview" alt="Preview">
+            </div>
+            <div class="compression-controls">
+                <div class="slider-container">
+                    <label>Quality: <span id="quality-value">80</span>%</label>
+                    <input type="range" id="quality-slider" min="1" max="100" value="80" oninput="updateQuality(this.value)">
+                </div>
+                <button class="download-btn" onclick="compressAndDownload()">Download Compressed Image</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab Switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tool-tab, .calculator, .image-compressor').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // Calculator Functions
+        let display = document.getElementById('calc-display');
+
+        function appendToDisplay(value) {
+            display.value += value;
+        }
+
+        function clearDisplay() {
+            display.value = '';
+        }
+
+        function calculate() {
+            try {
+                display.value = eval(display.value);
+            } catch (error) {
+                display.value = 'Error';
+            }
+        }
+
+        // Image Compression Functions
+        let currentImage = null;
+        let compressionQuality = 0.8;
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('image-preview');
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    currentImage = img;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function updateQuality(value) {
+            compressionQuality = value / 100;
+            document.getElementById('quality-value').textContent = value;
+        }
+
+        function compressAndDownload() {
+            if (!currentImage) return;
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = currentImage.naturalWidth;
+            canvas.height = currentImage.naturalHeight;
+            ctx.drawImage(currentImage, 0, 0);
+
+            canvas.toBlob((blob) => {
+                const link = document.createElement('a');
+                link.download = 'compressed-image.jpg';
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                URL.revokeObjectURL(link.href);
+            }, 'image/jpeg', compressionQuality);
+        }
+
+        // Drag and Drop Handling
+        const uploadContainer = document.querySelector('.upload-container');
+        
+        uploadContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadContainer.style.backgroundColor = '#e6f4ff';
+        });
+
+        uploadContainer.addEventListener('dragleave', () => {
+            uploadContainer.style.backgroundColor = 'white';
+        });
+
+        uploadContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadContainer.style.backgroundColor = 'white';
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleImageUpload({ target: { files: [file] } });
+            }
+        });
+    </script>
+</body>
+  </html>
