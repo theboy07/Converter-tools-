@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Case Converter | Multi-Tool</title>
+    <style>
+        :root {
+            --primary-blue: #0099ff;
+            --background-white: #ffffff;
+            --hover-blue: #0077cc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: var(--background-white);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .converter-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .converter-header h1 {
+            color: var(--primary-blue);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .converter-box {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 1rem;
+            border: 2px solid var(--primary-blue);
+            border-radius: 8px;
+            resize: vertical;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .case-btn {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .case-btn:hover {
+            background: var(--hover-blue);
+            transform: translateY(-2px);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .copy-btn {
+            background: #00cc99;
+        }
+
+        .reset-btn {
+            background: #ff6666;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .converter-header h1 {
+                font-size: 2rem;
+            }
+            
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            textarea {
+                height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="converter-header">
+            <h1>Text Case Converter</h1>
+            <p>Transform your text instantly with multiple case options</p>
+        </div>
+
+        <div class="converter-box">
+            <div class="input-group">
+                <textarea id="inputText" placeholder="Enter your text here..." 
+                          autofocus></textarea>
+            </div>
+
+            <div class="button-grid">
+                <button class="case-btn" data-case="upper">UPPERCASE</button>
+                <button class="case-btn" data-case="lower">lowercase</button>
+                <button class="case-btn" data-case="title">Title Case</button>
+                <button class="case-btn" data-case="sentence">Sentence case</button>
+                <button class="case-btn" data-case="camel">camelCase</button>
+                <button class="case-btn" data-case="pascal">PascalCase</button>
+                <button class="case-btn" data-case="snake">snake_case</button>
+                <button class="case-btn" data-case="kebab">kebab-case</button>
+            </div>
+
+            <div class="input-group">
+                <textarea id="outputText" readonly 
+                         placeholder="Converted text will appear here..."></textarea>
+            </div>
+
+            <div class="action-buttons">
+                <button class="case-btn copy-btn" id="copyBtn">
+                    📋 Copy to Clipboard
+                </button>
+                <button class="case-btn reset-btn" id="resetBtn">
+                    ↺ Reset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const inputText = document.getElementById('inputText');
+        const outputText = document.getElementById('outputText');
+        const copyBtn = document.getElementById('copyBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const caseButtons = document.querySelectorAll('.case-btn');
+
+        // Conversion functions
+        const caseConverters = {
+            upper: (text) => text.toUpperCase(),
+            lower: (text) => text.toLowerCase(),
+            title: (text) => text.replace(/\w\S*/g, (txt) => 
+                txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+            ),
+            sentence: (text) => {
+                return text.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g, (match) => 
+                    match.toUpperCase()
+                );
+            },
+            camel: (text) => {
+                return text.toLowerCase()
+                    .replace(/[^a-zA-Z0-9]+(.)/g, (_, chr) => chr.toUpperCase());
+            },
+            pascal: (text) => {
+                return text.toLowerCase()
+                    .replace(/[^a-zA-Z0-9]+(.)/g, (_, chr) => chr.toUpperCase())
+                    .replace(/^./, (chr) => chr.toUpperCase());
+            },
+            snake: (text) => text.replace(/\s+/g, '_').toLowerCase(),
+            kebab: (text) => text.replace(/\s+/g, '-').toLowerCase()
+        };
+
+        // Event Listeners
+        caseButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                if(button.dataset.case) {
+                    outputText.value = caseConverters[button.dataset.case](inputText.value);
+                }
+            });
+        });
+
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(outputText.value);
+            copyBtn.textContent = '✓ Copied!';
+            setTimeout(() => {
+                copyBtn.textContent = '📋 Copy to Clipboard';
+            }, 2000);
+        });
+
+        resetBtn.addEventListener('click', () => {
+            inputText.value = '';
+            outputText.value = '';
+            inputText.focus();
+        });
+
+        // Live conversion on input
+        inputText.addEventListener('input', () => {
+            if(inputText.value.trim() === '') {
+                outputText.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
