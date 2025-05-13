@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Editor - Multi-Tool</title>
+    <style>
+        :root {
+            --primary-color: #00a8ff;
+            --background-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--background-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .upload-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .custom-upload {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+
+        .custom-upload:hover {
+            background-color: #0097e6;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .preview-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            position: relative;
+            aspect-ratio: 1;
+            background: #f1f1f1;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #preview-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0097e6;
+        }
+
+        .compression-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .compression-label {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        @media (max-width: 480px) {
+            .controls {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            button {
+                padding: 12px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Image Editor</h1>
+        
+        <div class="upload-section">
+            <label class="custom-upload">
+                Upload Image
+                <input type="file" id="file-input" accept="image/*">
+            </label>
+        </div>
+
+        <div class="preview-container">
+            <img id="preview-image" src="#" alt="Preview" style="display: none;">
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <button id="rotate-left">↺ Rotate Left</button>
+            <button id="rotate-right">↻ Rotate Right</button>
+            <button id="flip-horizontal">↔ Flip Horizontal</button>
+            <button id="flip-vertical">↕ Flip Vertical</button>
+        </div>
+
+        <div class="compression-section">
+            <label class="compression-label">
+                Compression Quality: <span id="quality-value">80</span>%
+            </label>
+            <input type="range" id="quality" min="1" max="100" value="80">
+        </div>
+
+        <button id="download-btn" style="width: 100%; margin-top: 20px;">
+            Download Compressed Image
+        </button>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const previewImage = document.getElementById('preview-image');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let currentImage = null;
+        let rotation = 0;
+        let scaleX = 1;
+        let scaleY = 1;
+
+        // Image upload handler
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImage.style.display = 'block';
+                    previewImage.src = event.target.result;
+                    currentImage = new Image();
+                    currentImage.src = event.target.result;
+                    currentImage.onload = () => drawImage();
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Transformation functions
+        function drawImage() {
+            canvas.width = currentImage.width;
+            canvas.height = currentImage.height;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(canvas.width/2, canvas.height/2);
+            ctx.rotate(rotation * Math.PI/180);
+            ctx.scale(scaleX, scaleY);
+            ctx.drawImage(currentImage, -currentImage.width/2, -currentImage.height/2);
+            ctx.restore();
+        }
+
+        document.getElementById('rotate-left').addEventListener('click', () => {
+            rotation -= 90;
+            drawImage();
+        });
+
+        document.getElementById('rotate-right').addEventListener('click', () => {
+            rotation += 90;
+            drawImage();
+        });
+
+        document.getElementById('flip-horizontal').addEventListener('click', () => {
+            scaleX *= -1;
+            drawImage();
+        });
+
+        document.getElementById('flip-vertical').addEventListener('click', () => {
+            scaleY *= -1;
+            drawImage();
+        });
+
+        // Compression and download
+        document.getElementById('quality').addEventListener('input', function(e) {
+            document.getElementById('quality-value').textContent = e.target.value;
+        });
+
+        document.getElementById('download-btn').addEventListener('click', function() {
+            const quality = document.getElementById('quality').value / 100;
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.download = `compressed-image-${Date.now()}.jpg`;
+                a.href = url;
+                a.click();
+                URL.revokeObjectURL(url);
+            }, 'image/jpeg', quality);
+        });
+
+        // Handle canvas resizing
+        function resizeCanvas() {
+            if (currentImage) {
+                const container = document.querySelector('.preview-container');
+                const aspectRatio = currentImage.width / currentImage.height;
+                
+                if (container.offsetWidth / container.offsetHeight > aspectRatio) {
+                    canvas.style.width = 'auto';
+                    canvas.style.height = '100%';
+                } else {
+                    canvas.style.width = '100%';
+                    canvas.style.height = 'auto';
+                }
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+    </script>
+</body>
+</html>
