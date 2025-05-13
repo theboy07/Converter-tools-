@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Compressor Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <style>
+        :root {
+            --primary-blue: #2196F3;
+            --background-white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f8ff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--background-white);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        h1 {
+            color: var(--primary-blue);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-section {
+            border: 2px dashed var(--primary-blue);
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .custom-file-upload {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .custom-file-upload:hover {
+            background-color: #1976D2;
+        }
+
+        .dimension-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #1976D2;
+        }
+
+        .preview-section {
+            margin-top: 2rem;
+            display: none;
+        }
+
+        #pdfPreview {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 1rem;
+        }
+
+        .download-btn {
+            margin-top: 1rem;
+            text-decoration: none;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .dimension-input {
+                width: 100%;
+            }
+
+            #pdfPreview {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PDF Compressor Tool</h1>
+        
+        <div class="upload-section">
+            <label class="custom-file-upload">
+                <input type="file" id="pdfInput" accept="application/pdf">
+                Upload PDF
+            </label>
+            <p id="fileName" style="margin-top: 1rem; color: #666;"></p>
+        </div>
+
+        <div class="input-group">
+            <input type="number" id="width" class="dimension-input" placeholder="Enter width (px)">
+            <input type="number" id="height" class="dimension-input" placeholder="Enter height (px)">
+        </div>
+
+        <button onclick="compressPDF()">Compress PDF</button>
+
+        <div class="preview-section">
+            <h3>Preview:</h3>
+            <iframe id="pdfPreview"></iframe>
+            <a id="downloadLink" class="download-btn">Download Compressed PDF</a>
+        </div>
+    </div>
+
+    <script>
+        async function compressPDF() {
+            const pdfInput = document.getElementById('pdfInput');
+            const width = document.getElementById('width').value;
+            const height = document.getElementById('height').value;
+            
+            if (!pdfInput.files[0]) {
+                alert('Please upload a PDF file');
+                return;
+            }
+
+            if (!width || !height) {
+                alert('Please enter both width and height');
+                return;
+            }
+
+            try {
+                const pdfBytes = await pdfInput.files[0].arrayBuffer();
+                const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+                const pages = pdfDoc.getPages();
+
+                pages.forEach(page => {
+                    page.setSize(parseInt(width), parseInt(height));
+                });
+
+                const modifiedPdfBytes = await pdfDoc.save();
+                const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+
+                // Show preview and download link
+                document.querySelector('.preview-section').style.display = 'block';
+                document.getElementById('pdfPreview').src = url;
+                document.getElementById('downloadLink').href = url;
+                document.getElementById('downloadLink').download = 'compressed.pdf';
+                document.getElementById('downloadLink').style.display = 'inline-block';
+            } catch (error) {
+                alert('Error processing PDF: ' + error.message);
+            }
+        }
+
+        // Show file name when selected
+        document.getElementById('pdfInput').addEventListener('change', function(e) {
+            document.getElementById('fileName').textContent = e.target.files[0].name;
+        });
+    </script>
+</body>
+  </html>
