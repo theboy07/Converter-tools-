@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Sign PDF Tool</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf_viewer.min.css">
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --background-color: #f5f5f5;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background-color);
+        }
+
+        .tool-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .upload-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .custom-file-upload {
+            background: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .custom-file-upload:hover {
+            background: #1976D2;
+        }
+
+        .resize-controls {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .resize-input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .resize-input input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .preview-container {
+            position: relative;
+            margin: 20px 0;
+            border: 2px dashed #ddd;
+            min-height: 500px;
+        }
+
+        #pdf-canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        .signature-section {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .download-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        .download-btn:hover {
+            background: #1976D2;
+        }
+
+        @media (max-width: 768px) {
+            .resize-controls {
+                flex-direction: column;
+            }
+            
+            .tool-container {
+                padding: 15px;
+            }
+            
+            .preview-container {
+                min-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="tool-container">
+        <div class="upload-section">
+            <input type="file" id="pdf-input" class="file-input" accept="application/pdf">
+            <label for="pdf-input" class="custom-file-upload">Upload PDF</label>
+        </div>
+
+        <div class="resize-controls">
+            <div class="resize-input">
+                <label>Width (px):</label>
+                <input type="number" id="width-input" value="800">
+            </div>
+            <div class="resize-input">
+                <label>Height (px):</label>
+                <input type="number" id="height-input" value="600">
+            </div>
+        </div>
+
+        <div class="preview-container">
+            <canvas id="pdf-canvas"></canvas>
+        </div>
+
+        <div class="signature-section">
+            <button class="custom-file-upload" onclick="addSignature()">Add E-Signature</button>
+        </div>
+
+        <button class="download-btn" onclick="downloadPDF()">Download Signed PDF</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        const { jsPDF } = window.jspdf;
+        let pdfDoc = null;
+        let currentPage = 1;
+        let scale = 1;
+        let signatureAdded = false;
+
+        document.getElementById('pdf-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file.type === "application/pdf") {
+                const fileReader = new FileReader();
+                fileReader.onload = function() {
+                    const pdfData = new Uint8Array(this.result);
+                    pdfjsLib.getDocument({ data: pdfData }).promise.then(pdf => {
+                        pdfDoc = pdf;
+                        renderPage(currentPage);
+                    });
+                };
+                fileReader.readAsArrayBuffer(file);
+            }
+        });
+
+        function renderPage(pageNum) {
+            pdfDoc.getPage(pageNum).then(page => {
+                const viewport = page.getViewport({ scale: 1 });
+                const canvas = document.getElementById('pdf-canvas');
+                const context = canvas.getContext('2d');
+                
+                const width = parseInt(document.getElementById('width-input').value);
+                const height = parseInt(document.getElementById('height-input').value);
+                scale = Math.min(width / viewport.width, height / viewport.height);
+                
+                const scaledViewport = page.getViewport({ scale: scale });
+                
+                canvas.width = scaledViewport.width;
+                canvas.height = scaledViewport.height;
+
+                page.render({
+                    canvasContext: context,
+                    viewport: scaledViewport
+                });
+            });
+        }
+
+        function addSignature() {
+            const canvas = document.getElementById('pdf-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.font = '24px Arial';
+            ctx.fillStyle = '#2196F3';
+            ctx.fillText("E-Signature: John Doe", canvas.width - 250, canvas.height - 30);
+            signatureAdded = true;
+        }
+
+        function downloadPDF() {
+            if (!pdfDoc) {
+                alert('Please upload a PDF first');
+                return;
+            }
+            
+            const canvas = document.getElementById('pdf-canvas');
+            const imgData = canvas.toDataURL('image/png');
+            const width = parseInt(document.getElementById('width-input').value);
+            const height = parseInt(document.getElementById('height-input').value);
+
+            const pdf = new jsPDF({
+                orientation: width > height ? 'l' : 'p',
+                unit: 'px',
+                format: [width, height]
+            });
+
+            pdf.addImage(imgData, 'PNG', 0, 0, width, height);
+            pdf.save('signed-document.pdf');
+        }
+
+        // Update preview when dimensions change
+        document.getElementById('width-input').addEventListener('change', () => renderPage(currentPage));
+        document.getElementById('height-input').addEventListener('change', () => renderPage(currentPage));
+    </script>
+</body>
+</html>
