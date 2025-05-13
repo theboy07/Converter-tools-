@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Tool - EMI Calculator & Image Compressor</title>
+    <style>
+        :root {
+            --primary-color: #0099ff;
+            --secondary-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .tool-section {
+            background: var(--secondary-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        input[type="number"],
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #007acc;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e6f3ff;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            margin: 15px 0;
+            display: none;
+        }
+
+        #compressedImage {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .quality-slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-gap: 30px;
+        }
+
+        @media (min-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align: center; color: var(--primary-color); margin-bottom: 30px;">
+            Multi-Tool Kit
+        </h1>
+
+        <div class="grid">
+            <!-- EMI Calculator -->
+            <div class="tool-section">
+                <h2>Loan EMI Calculator</h2>
+                <div class="input-group">
+                    <label>Loan Amount (₹)</label>
+                    <input type="number" id="loanAmount" placeholder="Enter loan amount">
+                </div>
+                <div class="input-group">
+                    <label>Interest Rate (% p.a.)</label>
+                    <input type="number" id="interestRate" step="0.1" placeholder="Enter interest rate">
+                </div>
+                <div class="input-group">
+                    <label>Loan Tenure (months)</label>
+                    <input type="number" id="loanTenure" placeholder="Enter loan tenure">
+                </div>
+                <button onclick="calculateEMI()">Calculate EMI</button>
+                <div class="result" id="emiResult"></div>
+            </div>
+
+            <!-- Image Compressor -->
+            <div class="tool-section">
+                <h2>Image Compressor</h2>
+                <input type="file" id="imageInput" accept="image/*">
+                <label>Compression Quality:</label>
+                <input type="range" class="quality-slider" id="quality" min="0.1" max="1" step="0.1" value="0.8">
+                <span id="qualityValue">80%</span>
+                <button onclick="compressImage()">Compress Image</button>
+                <img class="image-preview" id="preview">
+                <div class="result" id="compressionResult">
+                    <a id="downloadLink" style="display: none;">
+                        <button>Download Compressed Image</button>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // EMI Calculator
+        function calculateEMI() {
+            const loanAmount = parseFloat(document.getElementById('loanAmount').value);
+            const interestRate = parseFloat(document.getElementById('interestRate').value);
+            const loanTenure = parseFloat(document.getElementById('loanTenure').value);
+
+            if (!loanAmount || !interestRate || !loanTenure) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            const monthlyInterest = interestRate / 1200;
+            const emi = (loanAmount * monthlyInterest * Math.pow(1 + monthlyInterest, loanTenure)) /
+                       (Math.pow(1 + monthlyInterest, loanTenure) - 1);
+
+            const result = document.getElementById('emiResult');
+            result.innerHTML = `
+                Monthly EMI: ₹${emi.toFixed(2)}<br>
+                Total Payment: ₹${(emi * loanTenure).toFixed(2)}<br>
+                Total Interest: ₹${(emi * loanTenure - loanAmount).toFixed(2)}
+            `;
+            result.style.display = 'block';
+        }
+
+        // Image Compressor
+        let compressedBlob = null;
+
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+                
+                img.onload = function() {
+                    document.getElementById('preview').src = img.src;
+                    document.getElementById('preview').style.display = 'block';
+                };
+            };
+            
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('quality').addEventListener('input', function() {
+            document.getElementById('qualityValue').textContent = 
+                `${Math.round(this.value * 100)}%`;
+        });
+
+        function compressImage() {
+            const quality = parseFloat(document.getElementById('quality').value);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = document.getElementById('preview');
+
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            ctx.drawImage(img, 0, 0);
+
+            canvas.toBlob(function(blob) {
+                compressedBlob = blob;
+                const downloadLink = document.getElementById('downloadLink');
+                downloadLink.href = URL.createObjectURL(blob);
+                downloadLink.download = `compressed-image${quality * 100}.jpg`;
+                downloadLink.style.display = 'block';
+            }, 'image/jpeg', quality);
+        }
+    </script>
+</body>
+</html>
