@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Resizer Tool</title>
+    <style>
+        :root {
+            --primary-color: #00a8ff;
+            --background-color: #f8f9fa;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--background-color);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .tool-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .upload-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .upload-label {
+            border: 2px dashed var(--primary-color);
+            padding: 3rem 2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            display: block;
+            transition: background 0.3s ease;
+        }
+
+        .upload-label:hover {
+            background: rgba(0, 168, 255, 0.05);
+        }
+
+        #image-input {
+            display: none;
+        }
+
+        .dimension-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .dimension-input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .dimension-input input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .preview-container {
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        #preview {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .download-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+            display: none;
+        }
+
+        .download-btn:hover {
+            background-color: #0097e6;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .tool-container {
+                padding: 1rem;
+            }
+
+            .upload-label {
+                padding: 2rem 1rem;
+            }
+
+            .dimension-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tool-container">
+            <h1>Image Resizer</h1>
+            <div class="upload-section">
+                <label class="upload-label" for="image-input">
+                    <p>Click to upload image or drag and drop</p>
+                    <p>Supported formats: JPG, PNG, GIF</p>
+                </label>
+                <input type="file" id="image-input" accept="image/*">
+            </div>
+
+            <div class="dimension-controls">
+                <div class="dimension-input">
+                    <input type="number" id="width" placeholder="Width (px)">
+                </div>
+                <div class="dimension-input">
+                    <input type="number" id="height" placeholder="Height (px)">
+                </div>
+            </div>
+
+            <div class="preview-container">
+                <img id="preview" alt="Preview">
+            </div>
+
+            <button class="download-btn" id="download-btn">Download Image</button>
+        </div>
+    </div>
+
+    <script>
+        const imageInput = document.getElementById('image-input');
+        const preview = document.getElementById('preview');
+        const widthInput = document.getElementById('width');
+        const heightInput = document.getElementById('height');
+        const downloadBtn = document.getElementById('download-btn');
+        let currentImage = null;
+
+        imageInput.addEventListener('change', handleImageUpload);
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    preview.src = event.target.result;
+                    currentImage = new Image();
+                    currentImage.src = event.target.result;
+                    currentImage.onload = () => {
+                        widthInput.value = currentImage.width;
+                        heightInput.value = currentImage.height;
+                    };
+                    downloadBtn.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function updatePreview() {
+            if (currentImage) {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                const width = parseInt(widthInput.value) || 0;
+                const height = parseInt(heightInput.value) || 0;
+                
+                if (width > 0 && height > 0) {
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(currentImage, 0, 0, width, height);
+                    preview.src = canvas.toDataURL();
+                    downloadBtn.style.display = 'inline-block';
+                }
+            }
+        }
+
+        widthInput.addEventListener('input', updatePreview);
+        heightInput.addEventListener('input', updatePreview);
+
+        downloadBtn.addEventListener('click', () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = parseInt(widthInput.value);
+            canvas.height = parseInt(heightInput.value);
+            ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+            
+            const link = document.createElement('a');
+            link.download = `resized-image-${Date.now()}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    </script>
+</body>
+</html>
