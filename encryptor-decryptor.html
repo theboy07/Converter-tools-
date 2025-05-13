@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Encryptor/Decryptor</title>
+    <style>
+        :root {
+            --primary-color: #0066ff;
+            --background-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .tool-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .tool-header h1 {
+            color: var(--primary-color);
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .tool-box {
+            background-color: #f5f9ff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 102, 255, 0.1);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+            resize: vertical;
+            min-height: 150px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0052cc;
+        }
+
+        .result-container {
+            margin-top: 20px;
+            position: relative;
+        }
+
+        #result {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            word-wrap: break-word;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .tool-header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tool-header">
+            <h1>Text Encryptor/Decryptor</h1>
+            <p>Securely encode and decode your text messages</p>
+        </div>
+        
+        <div class="tool-box">
+            <div class="input-group">
+                <textarea id="input-text" placeholder="Enter your text here..."></textarea>
+            </div>
+            
+            <div class="btn-group">
+                <button onclick="encryptText()">Encrypt</button>
+                <button onclick="decryptText()">Decrypt</button>
+            </div>
+            
+            <div class="result-container">
+                <button class="copy-btn" onclick="copyResult()">Copy</button>
+                <div id="result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function encryptText() {
+            const input = document.getElementById('input-text').value;
+            const encrypted = btoa(encodeURIComponent(input).replace(/%([0-9A-F]{2})/g, 
+                (match, p1) => String.fromCharCode('0x' + p1)));
+            showResult(encrypted);
+        }
+
+        function decryptText() {
+            try {
+                const input = document.getElementById('input-text').value;
+                const decrypted = decodeURIComponent(atob(input).split('').map(c => 
+                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                showResult(decrypted);
+            } catch (error) {
+                showResult("Error: Invalid encrypted text");
+            }
+        }
+
+        function showResult(text) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = text;
+        }
+
+        function copyResult() {
+            const result = document.getElementById('result').textContent;
+            navigator.clipboard.writeText(result).then(() => {
+                alert('Copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>
