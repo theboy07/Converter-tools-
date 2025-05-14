@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palette Generator | Multi-Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+    <style>
+        :root {
+            --primary-blue: #2196F3;
+            --secondary-blue: #E3F2FD;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: white;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .tool-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .tool-header h1 {
+            color: var(--primary-blue);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .upload-section {
+            background: var(--secondary-blue);
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .file-input {
+            position: relative;
+            display: inline-block;
+        }
+
+        .file-input input[type="file"] {
+            opacity: 0;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .upload-btn {
+            background: var(--primary-blue);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .upload-btn:hover {
+            background: #1976D2;
+        }
+
+        .preview-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .image-preview {
+            border: 3px solid var(--secondary-blue);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #previewImage {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .palette-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .color-swatch {
+            padding: 1rem;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.05);
+        }
+
+        .download-btn {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 12px;
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .preview-section {
+                grid-template-columns: 1fr;
+            }
+
+            .palette-display {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .tool-header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .palette-display {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .upload-section {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tool-header">
+            <h1>Palette Generator</h1>
+            <p>Upload an image to extract its color palette</p>
+        </div>
+
+        <div class="upload-section">
+            <div class="file-input">
+                <input type="file" id="imageUpload" accept="image/*">
+                <button class="upload-btn">Choose Image</button>
+            </div>
+        </div>
+
+        <div class="preview-section">
+            <div class="image-preview">
+                <img id="previewImage" src="#" alt="Image preview">
+            </div>
+            <div class="palette-display" id="paletteContainer"></div>
+        </div>
+
+        <button class="download-btn" id="downloadBtn" disabled>Download Compressed Image</button>
+    </div>
+
+    <script>
+        const colorThief = new ColorThief();
+        const imageUpload = document.getElementById('imageUpload');
+        const previewImage = document.getElementById('previewImage');
+        const paletteContainer = document.getElementById('paletteContainer');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        imageUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewImage.onload = function() {
+                        generatePalette();
+                        downloadBtn.disabled = false;
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function generatePalette() {
+            const colorCount = 6;
+            const palette = colorThief.getPalette(previewImage, colorCount);
+            paletteContainer.innerHTML = '';
+
+            palette.forEach(color => {
+                const hex = rgbToHex(color);
+                const swatch = document.createElement('div');
+                swatch.className = 'color-swatch';
+                swatch.style.backgroundColor = hex;
+                swatch.innerHTML = `
+                    <div>${hex}</div>
+                    <small>Click to copy</small>
+                `;
+                
+                swatch.addEventListener('click', () => {
+                    navigator.clipboard.writeText(hex);
+                    swatch.classList.add('copied');
+                    setTimeout(() => swatch.classList.remove('copied'), 1000);
+                });
+
+                paletteContainer.appendChild(swatch);
+            });
+        }
+
+        function rgbToHex([r, g, b]) {
+            return '#' + [r, g, b].map(x => {
+                const hex = x.toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('');
+        }
+
+        downloadBtn.addEventListener('click', function() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = previewImage.naturalWidth;
+            canvas.height = previewImage.naturalHeight;
+            ctx.drawImage(previewImage, 0, 0);
+
+            canvas.toBlob(blob => {
+                const link = document.createElement('a');
+                link.download = 'compressed-image.jpg';
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                URL.revokeObjectURL(link.href);
+            }, 'image/jpeg', 0.7);
+        });
+    </script>
+</body>
+</html>
