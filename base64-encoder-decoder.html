@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base64 Tool</title>
+    <style>
+        :root {
+            --primary-color: #00a8ff;
+            --background-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--background-color);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            resize: vertical;
+            min-height: 150px;
+            font-size: 14px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: opacity 0.3s;
+            flex: 1;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .preview-container {
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
+
+        #imagePreview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .download-btn {
+            margin-top: 15px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Base64 Encoder/Decoder</h1>
+        
+        <div class="input-group">
+            <textarea id="inputText" placeholder="Enter text or paste Base64 string here..."></textarea>
+        </div>
+
+        <div class="button-group">
+            <button class="btn" onclick="encodeText()">Encode to Base64</button>
+            <button class="btn" onclick="decodeText()">Decode from Base64</button>
+            <label class="btn" for="fileInput">Encode Image</label>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+
+        <div class="input-group">
+            <textarea id="result" placeholder="Result will appear here..." readonly></textarea>
+        </div>
+
+        <div class="preview-container" id="previewContainer">
+            <img id="imagePreview" alt="Image preview">
+            <button class="btn download-btn" onclick="downloadImage()" id="downloadBtn">Download Image</button>
+        </div>
+    </div>
+
+    <script>
+        function encodeText() {
+            const input = document.getElementById('inputText').value;
+            const encoded = btoa(unescape(encodeURIComponent(input)));
+            document.getElementById('result').value = encoded;
+            hidePreview();
+        }
+
+        function decodeText() {
+            try {
+                const input = document.getElementById('inputText').value;
+                const decoded = decodeURIComponent(escape(atob(input)));
+                document.getElementById('result').value = decoded;
+                hidePreview();
+            } catch (error) {
+                alert('Invalid Base64 string');
+            }
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                compressAndPreviewImage(file);
+            }
+        });
+
+        function compressAndPreviewImage(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    // Compression settings
+                    let width = img.width;
+                    let height = img.height;
+                    const maxSize = 800;
+                    
+                    if (width > height && width > maxSize) {
+                        height *= maxSize / width;
+                        width = maxSize;
+                    } else if (height > maxSize) {
+                        width *= maxSize / height;
+                        height = maxSize;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob(function(blob) {
+                        const reader = new FileReader();
+                        reader.onload = function() {
+                            const base64 = reader.result;
+                            document.getElementById('result').value = base64;
+                            showPreview(base64);
+                        };
+                        reader.readAsDataURL(blob);
+                    }, 'image/jpeg', 0.7);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function showPreview(base64) {
+            const previewContainer = document.getElementById('previewContainer');
+            const imagePreview = document.getElementById('imagePreview');
+            const downloadBtn = document.getElementById('downloadBtn');
+            
+            imagePreview.src = base64;
+            previewContainer.style.display = 'block';
+            downloadBtn.style.display = 'inline-block';
+        }
+
+        function hidePreview() {
+            document.getElementById('previewContainer').style.display = 'none';
+        }
+
+        function downloadImage() {
+            const base64 = document.getElementById('result').value;
+            const link = document.createElement('a');
+            link.download = 'compressed_image.jpg';
+            link.href = base64;
+            link.click();
+        }
+    </script>
+</body>
+  </html>
