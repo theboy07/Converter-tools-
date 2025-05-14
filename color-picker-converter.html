@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Picker & Converter</title>
+    <style>
+        :root {
+            --primary-color: #007BFF;
+            --background-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .color-picker-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        #colorInput {
+            width: 100px;
+            height: 50px;
+            padding: 5px;
+            cursor: pointer;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+        }
+
+        .color-preview {
+            width: 100%;
+            height: 100px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            transition: background-color 0.3s;
+        }
+
+        .conversion-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .color-format {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .color-format label {
+            display: block;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .copy-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #0056b3;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .conversion-results {
+                grid-template-columns: 1fr;
+            }
+
+            .input-group input {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Color Picker & Converter</h1>
+        
+        <div class="color-picker-section">
+            <input type="color" id="colorInput" value="#007BFF">
+            <div class="color-preview" id="colorPreview"></div>
+        </div>
+
+        <div class="conversion-results">
+            <div class="color-format">
+                <label>HEX</label>
+                <div class="input-group">
+                    <input type="text" id="hexValue" readonly>
+                    <button class="copy-btn" onclick="copyColor('hexValue')">Copy</button>
+                </div>
+            </div>
+
+            <div class="color-format">
+                <label>RGB</label>
+                <div class="input-group">
+                    <input type="text" id="rgbValue" readonly>
+                    <button class="copy-btn" onclick="copyColor('rgbValue')">Copy</button>
+                </div>
+            </div>
+
+            <div class="color-format">
+                <label>HSL</label>
+                <div class="input-group">
+                    <input type="text" id="hslValue" readonly>
+                    <button class="copy-btn" onclick="copyColor('hslValue')">Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const colorInput = document.getElementById('colorInput');
+        const colorPreview = document.getElementById('colorPreview');
+        const hexValue = document.getElementById('hexValue');
+        const rgbValue = document.getElementById('rgbValue');
+        const hslValue = document.getElementById('hslValue');
+
+        function updateColors() {
+            const color = colorInput.value;
+            
+            // Update preview
+            colorPreview.style.backgroundColor = color;
+            
+            // Update HEX value
+            hexValue.value = color.toUpperCase();
+            
+            // Convert to RGB
+            const rgb = hexToRgb(color);
+            rgbValue.value = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+            
+            // Convert to HSL
+            const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+            hslValue.value = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function rgbToHsl(r, g, b) {
+            r /= 255, g /= 255, b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+
+            if(max === min) {
+                h = s = 0;
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch(max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h *= 60;
+            }
+
+            return {
+                h: Math.round(h),
+                s: Math.round(s * 100),
+                l: Math.round(l * 100)
+            };
+        }
+
+        function copyColor(elementId) {
+            const copyText = document.getElementById(elementId);
+            copyText.select();
+            document.execCommand('copy');
+            alert('Copied to clipboard: ' + copyText.value);
+        }
+
+        // Initial update
+        colorInput.addEventListener('input', updateColors);
+        updateColors();
+    </script>
+</body>
+</html>
