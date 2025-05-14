@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Formatter & Validator</title>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --background-color: #f8f9fa;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background-color: var(--background-color);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .tool-title {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .editor-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .editor-box {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
+            font-family: monospace;
+        }
+
+        .error-message {
+            color: #dc3545;
+            background-color: #f8d7da;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .preview-box {
+            position: relative;
+        }
+
+        #downloadBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .editor-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .tool-title {
+                font-size: 1.5rem;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="tool-title">JSON Formatter & Validator</h1>
+        
+        <div class="editor-container">
+            <div class="editor-box">
+                <div class="button-group">
+                    <button id="formatBtn">Format & Validate</button>
+                </div>
+                <textarea id="input" placeholder="Paste your JSON here..."></textarea>
+            </div>
+            
+            <div class="editor-box preview-box">
+                <button id="downloadBtn" onclick="downloadJSON()">Download</button>
+                <textarea id="output" readonly placeholder="Formatted JSON will appear here..."></textarea>
+            </div>
+        </div>
+        
+        <div class="error-message" id="errorMsg"></div>
+    </div>
+
+    <script>
+        const formatBtn = document.getElementById('formatBtn');
+        const input = document.getElementById('input');
+        const output = document.getElementById('output');
+        const errorMsg = document.getElementById('errorMsg');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        formatBtn.addEventListener('click', formatJSON);
+
+        function formatJSON() {
+            try {
+                const json = JSON.parse(input.value);
+                const formatted = JSON.stringify(json, null, 2);
+                output.value = formatted;
+                errorMsg.style.display = 'none';
+                downloadBtn.style.display = 'block';
+            } catch (error) {
+                errorMsg.textContent = `Error: ${error.message}`;
+                errorMsg.style.display = 'block';
+                downloadBtn.style.display = 'none';
+            }
+        }
+
+        function downloadJSON() {
+            try {
+                const json = JSON.parse(input.value);
+                const minified = JSON.stringify(json);
+                const blob = new Blob([minified], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'data.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                errorMsg.textContent = `Download Error: ${error.message}`;
+                errorMsg.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
