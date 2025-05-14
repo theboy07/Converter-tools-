@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Color Picker</title>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --background-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--background-color);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .tool-title {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-label {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: inline-block;
+        }
+
+        .upload-label:hover {
+            background-color: #1976D2;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .color-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .color-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+        }
+
+        .color-values {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            flex-grow: 1;
+        }
+
+        .download-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .download-btn:hover {
+            background-color: #1976D2;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .color-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="tool-title">Image Color Picker</h1>
+        
+        <div class="upload-section">
+            <input type="file" id="fileInput" class="file-input" accept="image/*">
+            <label for="fileInput" class="upload-label">Upload Image</label>
+            <canvas id="imageCanvas" class="image-preview"></canvas>
+            <button id="downloadBtn" class="download-btn">Download Compressed Image</button>
+            <div class="color-info">
+                <div class="color-preview"></div>
+                <div class="color-values">
+                    <p>RGB: <span id="rgbValue">-</span></p>
+                    <p>HEX: <span id="hexValue">-</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const canvas = document.getElementById('imageCanvas');
+        const ctx = canvas.getContext('2d');
+        const colorPreview = document.querySelector('.color-preview');
+        const rgbValue = document.getElementById('rgbValue');
+        const hexValue = document.getElementById('hexValue');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        fileInput.addEventListener('change', handleImageUpload);
+        canvas.addEventListener('click', handleColorPick);
+        downloadBtn.addEventListener('click', downloadCompressedImage);
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    // Calculate scaled dimensions while maintaining aspect ratio
+                    const maxWidth = Math.min(img.width, window.innerWidth - 40);
+                    const scaleFactor = maxWidth / img.width;
+                    canvas.width = maxWidth;
+                    canvas.height = img.height * scaleFactor;
+                    
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    canvas.style.display = 'block';
+                    downloadBtn.style.display = 'inline-block';
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+
+        function handleColorPick(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const pixel = ctx.getImageData(x, y, 1, 1).data;
+            const rgb = `rgb(${pixel[0]}, ${pixel[1]}, ${pixel[2]})`;
+            const hex = rgbToHex(pixel[0], pixel[1], pixel[2]);
+            
+            colorPreview.style.backgroundColor = rgb;
+            rgbValue.textContent = rgb;
+            hexValue.textContent = hex;
+        }
+
+        function rgbToHex(r, g, b) {
+            return '#' + [r, g, b].map(x => {
+                const hex = x.toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('');
+        }
+
+        function downloadCompressedImage() {
+            canvas.toBlob((blob) => {
+                const link = document.createElement('a');
+                link.download = 'compressed-image.jpg';
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                URL.revokeObjectURL(link.href);
+            }, 'image/jpeg', 0.7);
+        }
+
+        // Handle window resize for better responsiveness
+        window.addEventListener('resize', () => {
+            if (canvas.width > 0) {
+                const img = new Image();
+                img.onload = function() {
+                    const maxWidth = Math.min(img.width, window.innerWidth - 40);
+                    const scaleFactor = maxWidth / img.width;
+                    canvas.width = maxWidth;
+                    canvas.height = img.height * scaleFactor;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                }
+                img.src = canvas.toDataURL();
+            }
+        });
+    </script>
+</body>
+</html>
