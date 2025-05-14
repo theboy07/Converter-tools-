@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regex Tester Tool</title>
+    <style>
+        :root {
+            --primary-blue: #007BFF;
+            --secondary-blue: #0056b3;
+            --background-white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--primary-blue);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: var(--background-white);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary-blue);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--secondary-blue);
+            font-weight: 600;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #007BFF;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .flags-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .flag-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .results {
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .match-results {
+            margin-top: 15px;
+        }
+
+        .highlight {
+            background-color: #ffd700;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .error {
+            color: #dc3545;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            input, textarea {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Regex Tester</h1>
+        
+        <div class="input-group">
+            <label for="regex-input">Regular Expression</label>
+            <input type="text" id="regex-input" placeholder="Enter your regex pattern">
+        </div>
+
+        <div class="flags-container">
+            <div class="flag-option">
+                <input type="checkbox" id="i-flag">
+                <label for="i-flag">i (case insensitive)</label>
+            </div>
+            <div class="flag-option">
+                <input type="checkbox" id="g-flag">
+                <label for="g-flag">g (global)</label>
+            </div>
+            <div class="flag-option">
+                <input type="checkbox" id="m-flag">
+                <label for="m-flag">m (multiline)</label>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="test-string">Test String</label>
+            <textarea id="test-string" rows="6" placeholder="Enter text to test against"></textarea>
+        </div>
+
+        <div class="results">
+            <h3>Results:</h3>
+            <div class="match-results" id="results"></div>
+            <div id="error-message" class="error"></div>
+        </div>
+    </div>
+
+    <script>
+        const regexInput = document.getElementById('regex-input');
+        const testString = document.getElementById('test-string');
+        const resultsDiv = document.getElementById('results');
+        const errorDiv = document.getElementById('error-message');
+        const flags = {
+            i: document.getElementById('i-flag'),
+            g: document.getElementById('g-flag'),
+            m: document.getElementById('m-flag')
+        };
+
+        function updateResults() {
+            errorDiv.textContent = '';
+            resultsDiv.innerHTML = '';
+            
+            try {
+                const pattern = regexInput.value;
+                const flagsStr = Object.keys(flags)
+                    .filter(flag => flags[flag].checked)
+                    .join('');
+                
+                const regex = new RegExp(pattern, flagsStr);
+                const text = testString.value;
+                const matches = [...text.matchAll(regex)];
+
+                if (matches.length === 0) {
+                    resultsDiv.textContent = 'No matches found';
+                    return;
+                }
+
+                let highlightedText = text;
+                const ranges = [];
+                
+                matches.forEach(match => {
+                    const start = match.index;
+                    const end = start + match[0].length;
+                    ranges.push({ start, end });
+                });
+
+                // Highlight matches in reverse order to prevent offset issues
+                ranges.sort((a, b) => b.start - a.start).forEach(({ start, end }) => {
+                    highlightedText = 
+                        highlightedText.slice(0, start) +
+                        `<span class="highlight">${highlightedText.slice(start, end)}</span>` +
+                        highlightedText.slice(end);
+                });
+
+                resultsDiv.innerHTML = highlightedText;
+
+            } catch (error) {
+                errorDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Add event listeners
+        regexInput.addEventListener('input', updateResults);
+        testString.addEventListener('input', updateResults);
+        Object.values(flags).forEach(flag => flag.addEventListener('change', updateResults));
+    </script>
+</body>
+</html>
