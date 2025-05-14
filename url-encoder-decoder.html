@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Encoder/Decoder - Multi-Tool</title>
+    <style>
+        :root {
+            --primary-blue: #2196F3;
+            --secondary-blue: #E3F2FD;
+            --white: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background-color: var(--white);
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background-color: var(--secondary-blue);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary-blue);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .tool-section {
+            margin-bottom: 1.5rem;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--primary-blue);
+            border-radius: 5px;
+            min-height: 120px;
+            margin: 0.5rem 0;
+            resize: vertical;
+            font-family: monospace;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+
+        button {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #output {
+            background-color: var(--white);
+            border-color: #90CAF9;
+        }
+
+        .copy-btn {
+            background-color: #42A5F5;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem;
+                padding: 1rem;
+            }
+
+            button {
+                flex: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>URL Encoder/Decoder</h1>
+        
+        <div class="tool-section">
+            <textarea id="input" placeholder="Enter text to encode or decode..."></textarea>
+            <div class="button-group">
+                <button onclick="encodeURL()">Encode URL</button>
+                <button onclick="decodeURL()">Decode URL</button>
+            </div>
+            <textarea id="output" readonly></textarea>
+            <div class="button-group">
+                <button class="copy-btn" onclick="copyOutput()">Copy Result</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function encodeURL() {
+            const input = document.getElementById('input').value.trim();
+            try {
+                const encoded = encodeURIComponent(input);
+                document.getElementById('output').value = encoded;
+            } catch (error) {
+                alert('Error encoding URL: ' + error.message);
+            }
+        }
+
+        function decodeURL() {
+            const input = document.getElementById('input').value.trim();
+            try {
+                const decoded = decodeURIComponent(input);
+                document.getElementById('output').value = decoded;
+            } catch (error) {
+                alert('Error decoding URL: ' + error.message);
+            }
+        }
+
+        function copyOutput() {
+            const output = document.getElementById('output');
+            output.select();
+            navigator.clipboard.writeText(output.value)
+                .then(() => alert('Copied to clipboard!'))
+                .catch(err => alert('Failed to copy: ' + err));
+        }
+    </script>
+</body>
+</html>
