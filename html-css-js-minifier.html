@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Minifier Tool</title>
+    <style>
+        :root {
+            --primary-color: #00a8ff;
+            --background-color: #ffffff;
+            --text-color: #2d3436;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 0;
+            background-color: var(--primary-color);
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .minifier-app {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f1f2f6;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .editor-container {
+            padding: 20px;
+        }
+
+        .code-input {
+            width: 100%;
+            height: 300px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            margin-bottom: 20px;
+        }
+
+        .preview-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .preview-container.active {
+            display: block;
+        }
+
+        .button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin: 10px 0;
+        }
+
+        .button:hover {
+            background: #0097e6;
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .code-input {
+                height: 200px;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Code Minifier</h1>
+        <p>Compress your HTML, CSS & JavaScript files</p>
+    </div>
+
+    <div class="container">
+        <div class="minifier-app">
+            <div class="tabs">
+                <div class="tab active" data-type="html">HTML</div>
+                <div class="tab" data-type="css">CSS</div>
+                <div class="tab" data-type="js">JavaScript</div>
+            </div>
+
+            <div class="editor-container">
+                <textarea class="code-input" placeholder="Paste your code here..."></textarea>
+                <button class="button" onclick="minifyCode()">Minify Code</button>
+                
+                <div class="preview-container">
+                    <h3>Minified Preview:</h3>
+                    <textarea class="code-input preview" readonly></textarea>
+                    <button class="button" onclick="downloadMinified()">Download Minified</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelector('.tab.active').classList.remove('active');
+                tab.classList.add('active');
+                document.querySelector('.preview-container').classList.remove('active');
+            });
+        });
+
+        // Minification functions
+        const minifiers = {
+            html: code => code
+                .replace(/<!--[\s\S]*?-->/g, '')
+                .replace(/\s+/g, ' ')
+                .replace(/>\s+</g, '><')
+                .trim(),
+
+            css: code => code
+                .replace(/\/\*[\s\S]*?\*\//g, '')
+                .replace(/\s+/g, ' ')
+                .replace(/\s*([{:;}])\s*/g, '$1')
+                .replace(/;}/g, '}')
+                .trim(),
+
+            js: code => code
+                .replace(/\/\/.*/g, '')
+                .replace(/\/\*[\s\S]*?\*\//g, '')
+                .replace(/\s+/g, ' ')
+                .replace(/\s*([=+\-*/(){}\[\]|&<>?:;,])\s*/g, '$1')
+                .trim()
+        };
+
+        function minifyCode() {
+            const activeType = document.querySelector('.tab.active').dataset.type;
+            const input = document.querySelector('.code-input').value;
+            const minified = minifiers[activeType](input);
+            
+            const previewContainer = document.querySelector('.preview-container');
+            const preview = document.querySelector('.preview');
+            preview.value = minified;
+            previewContainer.classList.add('active');
+        }
+
+        function downloadMinified() {
+            const activeType = document.querySelector('.tab.active').dataset.type;
+            const minified = document.querySelector('.preview').value;
+            const blob = new Blob([minified], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `minified.${activeType}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
