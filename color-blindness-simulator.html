@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Blindness Simulator</title>
+    <style>
+        :root {
+            --primary-color: #2196F3;  /* Bright blue */
+            --background-color: #ffffff;  /* White */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-color);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .tool-title {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+        }
+
+        .simulator-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .upload-section {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .preview-section {
+            flex: 2;
+            min-width: 300px;
+        }
+
+        .file-input {
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        select {
+            padding: 10px;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+            background: #f0f0f0;
+        }
+
+        .download-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .download-btn:disabled {
+            background-color: #90CAF9;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            .simulator-container {
+                flex-direction: column;
+            }
+            
+            .file-input, select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="tool-title">Color Blindness Simulator</h1>
+        
+        <div class="simulator-container">
+            <div class="upload-section">
+                <div class="controls">
+                    <input type="file" class="file-input" accept="image/*" id="imageInput">
+                    <select id="simulationType">
+                        <option value="normal">Normal Vision</option>
+                        <option value="protanopia">Protanopia</option>
+                        <option value="deuteranopia">Deuteranopia</option>
+                        <option value="tritanopia">Tritanopia</option>
+                    </select>
+                    <button class="download-btn" id="downloadBtn" disabled>Download Image</button>
+                </div>
+            </div>
+            <div class="preview-section">
+                <canvas id="previewCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const simulationType = document.getElementById('simulationType');
+        const previewCanvas = document.getElementById('previewCanvas');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const ctx = previewCanvas.getContext('2d');
+        
+        const filterMap = {
+            normal: 'none',
+            protanopia: 'contrast(1.7) sepia(0.3) hue-rotate(-50deg) saturate(6)',
+            deuteranopia: 'contrast(1.7) sepia(0.3) hue-rotate(20deg) saturate(6)',
+            tritanopia: 'contrast(1.7) sepia(0.3) hue-rotate(70deg) saturate(6)'
+        };
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    previewCanvas.width = img.width;
+                    previewCanvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    applyColorFilter();
+                    downloadBtn.disabled = false;
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function applyColorFilter() {
+            const filter = filterMap[simulationType.value];
+            previewCanvas.style.filter = filter;
+        }
+
+        function downloadImage() {
+            const scaledCanvas = document.createElement('canvas');
+            const scaledCtx = scaledCanvas.getContext('2d');
+            
+            // Set scaled dimensions
+            scaledCanvas.width = previewCanvas.width;
+            scaledCanvas.height = previewCanvas.height;
+            
+            // Apply current filter
+            scaledCtx.filter = previewCanvas.style.filter;
+            scaledCtx.drawImage(previewCanvas, 0, 0);
+
+            // Convert to JPEG with compression
+            scaledCanvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = `colorblind-simulation-${Date.now()}.jpg`;
+                link.href = url;
+                link.click();
+                URL.revokeObjectURL(url);
+            }, 'image/jpeg', 0.7);
+        }
+
+        // Event Listeners
+        imageInput.addEventListener('change', handleImageUpload);
+        simulationType.addEventListener('change', applyColorFilter);
+        downloadBtn.addEventListener('click', downloadImage);
+
+        // Mobile-responsive canvas sizing
+        function resizeCanvas() {
+            if (previewCanvas.width > 0) {
+                const containerWidth = previewCanvas.parentElement.offsetWidth;
+                const scale = containerWidth / previewCanvas.width;
+                previewCanvas.style.width = `${containerWidth}px`;
+                previewCanvas.style.height = `${previewCanvas.height * scale}px`;
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+    </script>
+</body>
+</html>
