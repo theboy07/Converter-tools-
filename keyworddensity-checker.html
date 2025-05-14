@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keyword Density Checker - Multi-Tool</title>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: var(--secondary-color);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .tool-title {
+            text-align: center;
+            color: var(--primary-color);
+            margin: 2rem 0;
+            font-size: 2.5em;
+        }
+
+        .input-section {
+            background: var(--secondary-color);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,123,255,0.1);
+            margin-bottom: 2rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 1rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            resize: vertical;
+            font-size: 1rem;
+        }
+
+        .analyze-btn {
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background 0.3s ease;
+        }
+
+        .analyze-btn:hover {
+            background: #0056b3;
+        }
+
+        .results-section {
+            background: var(--secondary-color);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,123,255,0.1);
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .results-table th {
+            background: var(--primary-color);
+            color: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .tool-title {
+                font-size: 1.8em;
+            }
+
+            .input-section,
+            .results-section {
+                padding: 1rem;
+            }
+
+            textarea {
+                height: 150px;
+            }
+
+            .results-table th,
+            .results-table td {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="tool-title">Keyword Density Checker</h1>
+        
+        <div class="input-section">
+            <textarea id="input-text" placeholder="Paste your text here..."></textarea>
+            <button class="analyze-btn" onclick="analyzeKeywords()">Analyze Keywords</button>
+        </div>
+
+        <div class="results-section">
+            <h2>Analysis Results</h2>
+            <div id="results-container"></div>
+        </div>
+    </div>
+
+    <script>
+        function analyzeKeywords() {
+            const text = document.getElementById('input-text').value;
+            if (!text.trim()) {
+                alert('Please enter some text to analyze');
+                return;
+            }
+
+            // Process text
+            const words = text
+                .toLowerCase()
+                .replace(/[^\w\s]/g, '')
+                .split(/\s+/)
+                .filter(word => word.length > 0);
+
+            const totalWords = words.length;
+            if (totalWords === 0) {
+                alert('No valid words found');
+                return;
+            }
+
+            // Count keywords
+            const keywordCounts = {};
+            words.forEach(word => {
+                keywordCounts[word] = (keywordCounts[word] || 0) + 1;
+            });
+
+            // Create results array
+            const results = Object.entries(keywordCounts)
+                .map(([word, count]) => ({
+                    word,
+                    count,
+                    density: (count / totalWords * 100).toFixed(2) + '%'
+                }))
+                .sort((a, b) => b.count - a.count);
+
+            // Display results
+            const resultsHTML = `
+                <p>Total words: ${totalWords}</p>
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Keyword</th>
+                            <th>Frequency</th>
+                            <th>Density</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${results.map(result => `
+                            <tr>
+                                <td>${result.word}</td>
+                                <td>${result.count}</td>
+                                <td>${result.density}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('results-container').innerHTML = resultsHTML;
+        }
+    </script>
+</body>
+</html>
