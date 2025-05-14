@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrast Checker - Multi-Tool</title>
+    <style>
+        :root {
+            --primary-blue: #2196F3;
+            --secondary-blue: #E3F2FD;
+            --white: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--white);
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 2rem 0;
+            background-color: var(--primary-blue);
+            color: var(--white);
+            margin-bottom: 2rem;
+        }
+
+        .checker-container {
+            background-color: var(--secondary-blue);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        .color-input {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .color-input label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .color-input input[type="color"] {
+            width: 100%;
+            height: 50px;
+            cursor: pointer;
+        }
+
+        .preview-section {
+            padding: 2rem;
+            background-color: var(--white);
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .contrast-result {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        .compliance-status {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .compliance-status.good {
+            background-color: #C8E6C9;
+            color: #2E7D32;
+        }
+
+        .compliance-status.fair {
+            background-color: #FFF3E0;
+            color: #EF6C00;
+        }
+
+        .compliance-status.poor {
+            background-color: #FFCDD2;
+            color: #C62828;
+        }
+
+        .sample-text {
+            display: inline-block;
+            padding: 1rem 2rem;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .color-picker {
+                flex-direction: column;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .checker-container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Contrast Checker</h1>
+        <p>Ensure your color combinations meet accessibility standards</p>
+    </div>
+
+    <div class="container">
+        <div class="checker-container">
+            <div class="color-picker">
+                <div class="color-input">
+                    <label for="foreground">Text Color</label>
+                    <input type="color" id="foreground" value="#000000">
+                </div>
+                <div class="color-input">
+                    <label for="background">Background Color</label>
+                    <input type="color" id="background" value="#ffffff">
+                </div>
+            </div>
+
+            <div class="preview-section">
+                <div class="sample-text" id="previewText">
+                    Sample Text
+                </div>
+                <div id="contrastRatio" class="contrast-result">Contrast Ratio: 21:1</div>
+                <div id="complianceMessage" class="compliance-status good">
+                    Passes AAA for all text sizes
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculateContrast() {
+            const foreground = document.getElementById('foreground').value;
+            const background = document.getElementById('background').value;
+            
+            const fg = hexToRgb(foreground);
+            const bg = hexToRgb(background);
+            
+            const luminance1 = calculateLuminance(fg.r, fg.g, fg.b);
+            const luminance2 = calculateLuminance(bg.r, bg.g, bg.b);
+            
+            const ratio = (Math.max(luminance1, luminance2) + 0.05) / 
+                         (Math.min(luminance1, luminance2) + 0.05);
+            
+            updateDisplay(ratio);
+            updatePreview(foreground, background);
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function calculateLuminance(r, g, b) {
+            const a = [r, g, b].map(v => {
+                v /= 255;
+                return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+            });
+            return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+        }
+
+        function updateDisplay(ratio) {
+            const contrastRatio = document.getElementById('contrastRatio');
+            const complianceMessage = document.getElementById('complianceMessage');
+            
+            const ratioText = `Contrast Ratio: ${ratio.toFixed(2)}:1`;
+            contrastRatio.textContent = ratioText;
+
+            complianceMessage.className = 'compliance-status ';
+            
+            if (ratio >= 7) {
+                complianceMessage.classList.add('good');
+                complianceMessage.textContent = 'Passes AAA for all text sizes';
+            } else if (ratio >= 4.5) {
+                complianceMessage.classList.add('good');
+                complianceMessage.textContent = 'Passes AA for normal text and AAA for large text';
+            } else if (ratio >= 3) {
+                complianceMessage.classList.add('fair');
+                complianceMessage.textContent = 'Passes AA for large text only';
+            } else {
+                complianceMessage.classList.add('poor');
+                complianceMessage.textContent = 'Does not meet accessibility standards';
+            }
+        }
+
+        function updatePreview(fg, bg) {
+            const preview = document.getElementById('previewText');
+            preview.style.color = fg;
+            preview.style.backgroundColor = bg;
+        }
+
+        // Event listeners
+        document.getElementById('foreground').addEventListener('input', calculateContrast);
+        document.getElementById('background').addEventListener('input', calculateContrast);
+
+        // Initial calculation
+        calculateContrast();
+    </script>
+</body>
+</html>
