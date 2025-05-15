@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Unit Converter</title>
+    <style>
+        :root {
+            --primary-color: #0099ff;
+            --secondary-color: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--secondary-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .converter-container {
+            background-color: var(--primary-color);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 800px;
+        }
+
+        h1 {
+            color: var(--secondary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .converter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+            margin-top: 5px;
+        }
+
+        optgroup {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        button {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        .result {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        @media (max-width: 480px) {
+            .converter-container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            input, select {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="converter-container">
+        <h1>Complete Unit Converter</h1>
+        <div class="converter-group">
+            <div class="input-group">
+                <input type="number" id="inputValue" placeholder="Enter value" step="any">
+            </div>
+            <div class="input-group">
+                <select id="fromUnit">
+                    <optgroup label="Length">
+                        <option value="meters">Meters</option>
+                        <option value="kilometers">Kilometers</option>
+                        <option value="feet">Feet</option>
+                        <option value="miles">Miles</option>
+                        <option value="inches">Inches</option>
+                        <option value="centimeters">Centimeters</option>
+                    </optgroup>
+                    <optgroup label="Area">
+                        <option value="squareMeters">Square Meters</option>
+                        <option value="squareFeet">Square Feet</option>
+                        <option value="acres">Acres</option>
+                        <option value="hectares">Hectares</option>
+                        <option value="squareMiles">Square Miles</option>
+                    </optgroup>
+                    <optgroup label="Volume">
+                        <option value="liters">Liters</option>
+                        <option value="gallons">Gallons</option>
+                        <option value="cubicMeters">Cubic Meters</option>
+                        <option value="cubicFeet">Cubic Feet</option>
+                        <option value="milliliters">Milliliters</option>
+                    </optgroup>
+                    <optgroup label="Weight">
+                        <option value="kilograms">Kilograms</option>
+                        <option value="pounds">Pounds</option>
+                        <option value="grams">Grams</option>
+                        <option value="ounces">Ounces</option>
+                        <option value="tons">Metric Tons</option>
+                    </optgroup>
+                    <optgroup label="Temperature">
+                        <option value="celsius">Celsius</option>
+                        <option value="fahrenheit">Fahrenheit</option>
+                        <option value="kelvin">Kelvin</option>
+                    </optgroup>
+                    <optgroup label="Speed">
+                        <option value="kmh">km/h</option>
+                        <option value="mph">mph</option>
+                        <option value="knots">Knots</option>
+                        <option value="mps">m/s</option>
+                    </optgroup>
+                    <optgroup label="Time">
+                        <option value="seconds">Seconds</option>
+                        <option value="minutes">Minutes</option>
+                        <option value="hours">Hours</option>
+                        <option value="days">Days</option>
+                    </optgroup>
+                    <optgroup label="Digital Storage">
+                        <option value="bytes">Bytes</option>
+                        <option value="kilobytes">Kilobytes</option>
+                        <option value="megabytes">Megabytes</option>
+                        <option value="gigabytes">Gigabytes</option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="input-group">
+                <select id="toUnit">
+                    <optgroup label="Length">
+                        <option value="feet">Feet</option>
+                        <option value="miles">Miles</option>
+                        <option value="meters">Meters</option>
+                        <option value="kilometers">Kilometers</option>
+                        <option value="inches">Inches</option>
+                        <option value="centimeters">Centimeters</option>
+                    </optgroup>
+                    <optgroup label="Area">
+                        <option value="squareFeet">Square Feet</option>
+                        <option value="acres">Acres</option>
+                        <option value="squareMeters">Square Meters</option>
+                        <option value="hectares">Hectares</option>
+                        <option value="squareMiles">Square Miles</option>
+                    </optgroup>
+                    <optgroup label="Volume">
+                        <option value="gallons">Gallons</option>
+                        <option value="liters">Liters</option>
+                        <option value="cubicFeet">Cubic Feet</option>
+                        <option value="cubicMeters">Cubic Meters</option>
+                        <option value="milliliters">Milliliters</option>
+                    </optgroup>
+                    <optgroup label="Weight">
+                        <option value="pounds">Pounds</option>
+                        <option value="kilograms">Kilograms</option>
+                        <option value="ounces">Ounces</option>
+                        <option value="grams">Grams</option>
+                        <option value="tons">Metric Tons</option>
+                    </optgroup>
+                    <optgroup label="Temperature">
+                        <option value="fahrenheit">Fahrenheit</option>
+                        <option value="celsius">Celsius</option>
+                        <option value="kelvin">Kelvin</option>
+                    </optgroup>
+                    <optgroup label="Speed">
+                        <option value="mph">mph</option>
+                        <option value="kmh">km/h</option>
+                        <option value="mps">m/s</option>
+                        <option value="knots">Knots</option>
+                    </optgroup>
+                    <optgroup label="Time">
+                        <option value="minutes">Minutes</option>
+                        <option value="hours">Hours</option>
+                        <option value="days">Days</option>
+                        <option value="seconds">Seconds</option>
+                    </optgroup>
+                    <optgroup label="Digital Storage">
+                        <option value="kilobytes">Kilobytes</option>
+                        <option value="megabytes">Megabytes</option>
+                        <option value="gigabytes">Gigabytes</option>
+                        <option value="bytes">Bytes</option>
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+        <button onclick="convertUnits()">Convert</button>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        const conversionRates = {
+            // Length conversions
+            meters: {
+                feet: 3.28084,
+                miles: 0.000621371,
+                kilometers: 0.001,
+                inches: 39.3701,
+                centimeters: 100
+            },
+            kilometers: {
+                meters: 1000,
+                feet: 3280.84,
+                miles: 0.621371,
+                inches: 39370.1,
+                centimeters: 100000
+            },
+            feet: {
+                meters: 0.3048,
+                kilometers: 0.0003048,
+                miles: 0.000189394,
+                inches: 12,
+                centimeters: 30.48
+            },
+            miles: {
+                meters: 1609.34,
+                kilometers: 1.60934,
+                feet: 5280,
+                inches: 63360,
+                centimeters: 160934
+            },
+            inches: {
+                meters: 0.0254,
+                feet: 0.0833333,
+                centimeters: 2.54,
+                miles: 0.0000157828
+            },
+            centimeters: {
+                meters: 0.01,
+                inches: 0.393701,
+                feet: 0.0328084,
+                miles: 0.00000621371
+            },
+
+            // Area conversions
+            squareMeters: {
+                squareFeet: 10.7639,
+                acres: 0.000247105,
+                hectares: 0.0001,
+                squareMiles: 3.861e-7
+            },
+            squareFeet: {
+                squareMeters: 0.092903,
+                acres: 2.2957e-5,
+                hectares: 0.0000092903,
+                squareMiles: 3.587e-8
+            },
+            acres: {
+                squareMeters: 4046.86,
+                squareFeet: 43560,
+                hectares: 0.404686,
+                squareMiles: 0.0015625
+            },
+            hectares: {
+                squareMeters: 10000,
+                acres: 2.47105,
+                squareFeet: 107639,
+                squareMiles: 0.00386102
+            },
+            squareMiles: {
+                squareMeters: 2589990,
+                acres: 640,
+                hectares: 258.999,
+                squareFeet: 2.788e+7
+            },
+
+            // Volume conversions
+            liters: {
+                gallons: 0.264172,
+                cubicMeters: 0.001,
+                cubicFeet: 0.0353147,
+                milliliters: 1000
+            },
+            gallons: {
+                liters: 3.78541,
+                cubicMeters: 0.00378541,
+                cubicFeet: 0.133681,
+                milliliters: 3785.41
+            },
+            cubicMeters: {
+                liters: 1000,
+                gallons: 264.172,
+                cubicFeet: 35.3147,
+                milliliters: 1e+6
+            },
+            cubicFeet: {
+                liters: 28.3168,
+                gallons: 7.48052,
+                cubicMeters: 0.0283168,
+                milliliters: 28316.8
+            },
+            milliliters: {
+                liters: 0.001,
+                gallons: 0.000264172,
+                cubicMeters: 1e-6,
+                cubicFeet: 0.0000353147
+            },
+
+            // Weight conversions
+            kilograms: {
+                pounds: 2.20462,
+                grams: 1000,
+                ounces: 35.274,
+                tons: 0.001
+            },
+            pounds: {
+                kilograms: 0.453592,
+                grams: 453.592,
+                ounces: 16,
+                tons: 0.000453592
+            },
+            grams: {
+                kilograms: 0.001,
+                pounds: 0.00220462,
+                ounces: 0.035274,
+                tons: 1e-6
+            },
+            ounces: {
+                kilograms: 0.0283495,
+                pounds: 0.0625,
+                grams: 28.3495,
+                tons: 2.835e-5
+            },
+            tons: {
+                kilograms: 1000,
+                pounds: 2204.62,
+                grams: 1e+6,
+                ounces: 35274
+            },
+
+            // Temperature conversions
+            celsius: {
+                fahrenheit: (c) => (c * 9/5) + 32,
+                kelvin: (c) => c + 273.15
+            },
+            fahrenheit: {
+                celsius: (f) => (f - 32) * 5/9,
+                kelvin: (f) => (f - 32) * 5/9 + 273.15
+            },
+            kelvin: {
+                celsius: (k) => k - 273.15,
+                fahrenheit: (k) => (k - 273.15) * 9/5 + 32
+            },
+
+            // Speed conversions
+            kmh: {
+                mph: 0.621371,
+                mps: 0.277778,
+                knots: 0.539957
+            },
+            mph: {
+                kmh: 1.60934,
+                mps: 0.44704,
+                knots: 0.868976
+            },
+            mps: {
+                kmh: 3.6,
+                mph: 2.23694,
+                knots: 1.94384
+            },
+            knots: {
+                kmh: 1.852,
+                mph: 1.15078,
+                mps: 0.514444
+            },
+
+            // Time conversions
+            seconds: {
+                minutes: 1/60,
+                hours: 1/3600,
+                days: 1/86400
+            },
+            minutes: {
+                seconds: 60,
+                hours: 1/60,
+                days: 1/1440
+            },
+            hours: {
+                seconds: 3600,
+                minutes: 60,
+                days: 1/24
+            },
+            days: {
+                seconds: 86400,
+                minutes: 1440,
+                hours: 24
+            },
+
+            // Digital storage conversions
+            bytes: {
+                kilobytes: 1/1024,
+                megabytes: 1/(1024**2),
+                gigabytes: 1/(1024**3)
+            },
+            kilobytes: {
+                bytes: 1024,
+                megabytes: 1/1024,
+                gigabytes: 1/(1024**2)
+            },
+            megabytes: {
+                bytes: 1024**2,
+                kilobytes: 1024,
+                gigabytes: 1/1024
+            },
+            gigabytes: {
+                bytes: 1024**3,
+                kilobytes: 1024**2,
+                megabytes: 1024
+            }
+        };
+
+        function convertUnits() {
+            const inputValue = parseFloat(document.getElementById('inputValue').value);
+            const fromUnit = document.getElementById('fromUnit').value;
+            const toUnit = document.getElementById('toUnit').value;
+            const resultElement = document.getElementById('result');
+
+            if (isNaN(inputValue)) {
+                resultElement.textContent = "Please enter a valid number";
+                return;
+            }
+
+            let result;
+            
+            if (fromUnit === toUnit) {
+                result = inputValue;
+            } else if (conversionRates[fromUnit] && conversionRates[fromUnit][toUnit]) {
+                if (typeof conversionRates[fromUnit][toUnit] === 'function') {
+                    result = conversionRates[fromUnit][toUnit](inputValue);
+                } else {
+                    result = inputValue * conversionRates[fromUnit][toUnit];
+                }
+            } else {
+                resultElement.textContent = "Conversion between these units is not supported";
+                return;
+            }
+
+            resultElement.textContent = `${inputValue} ${fromUnit} = ${result.toFixed(4)} ${toUnit}`;
+        }
+    </script>
+</body>
+  </html>
