@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barcode Tools | Multi-Tool</title>
+    <!-- Include required libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/instascan/1.0.0/instascan.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #00a8ff;
+            --background-color: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .tool-section {
+            background: var(--background-color);
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #barcode-preview {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        #scanner-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 20px auto;
+        }
+
+        #preview {
+            width: 100%;
+            border-radius: 5px;
+        }
+
+        .download-section {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .tool-section {
+                padding: 15px;
+            }
+
+            button {
+                width: 100%;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Barcode Generator Section -->
+        <div class="tool-section">
+            <h2>Barcode Generator</h2>
+            <div class="input-group">
+                <input type="text" id="barcode-data" placeholder="Enter text to encode">
+                <button onclick="generateBarcode()">Generate Barcode</button>
+            </div>
+            <div id="barcode-preview"></div>
+            <div class="download-section" id="download-section" style="display: none;">
+                <button onclick="downloadBarcode()">Download Barcode</button>
+            </div>
+        </div>
+
+        <!-- Barcode Scanner Section -->
+        <div class="tool-section">
+            <h2>Barcode Scanner</h2>
+            <div id="scanner-container">
+                <video id="preview"></video>
+            </div>
+            <div class="result" id="scan-result"></div>
+            <button onclick="toggleScanner()" id="scanner-toggle">Start Scanner</button>
+        </div>
+    </div>
+
+    <script>
+        // Barcode Generator Functions
+        let currentBarcode = null;
+
+        function generateBarcode() {
+            const data = document.getElementById('barcode-data').value;
+            if (!data) {
+                alert('Please enter text to generate barcode');
+                return;
+            }
+
+            const preview = document.getElementById('barcode-preview');
+            preview.innerHTML = '<svg id="barcode-svg"></svg>';
+            
+            JsBarcode("#barcode-svg", data, {
+                format: "CODE128",
+                lineColor: "#000",
+                width: 2,
+                height: 100,
+                displayValue: true
+            });
+
+            currentBarcode = document.getElementById('barcode-svg');
+            document.getElementById('download-section').style.display = 'block';
+        }
+
+        function downloadBarcode() {
+            if (!currentBarcode) return;
+
+            const svgData = new XMLSerializer().serializeToString(currentBarcode);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                
+                // Compress and download
+                const link = document.createElement('a');
+                link.download = 'barcode.png';
+                link.href = canvas.toDataURL('image/png', 0.8); // 0.8 compression ratio
+                link.click();
+            };
+            
+            img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+        }
+
+        // Barcode Scanner Functions
+        let scanner = null;
+        let isScanning = false;
+
+        function toggleScanner() {
+            const toggleButton = document.getElementById('scanner-toggle');
+            
+            if (!isScanning) {
+                scanner = new Instascan.Scanner({
+                    video: document.getElementById('preview'),
+                    mirror: false
+                });
+
+                scanner.addListener('scan', function(content) {
+                    document.getElementById('scan-result').innerHTML = `Scanned: ${content}`;
+                });
+
+                Instascan.Camera.getCameras().then(function(cameras) {
+                    if (cameras.length > 0) {
+                        scanner.start(cameras[0]);
+                        toggleButton.textContent = 'Stop Scanner';
+                        isScanning = true;
+                    } else {
+                        alert('No cameras found');
+                    }
+                }).catch(function(e) {
+                    console.error(e);
+                    alert('Error accessing camera');
+                });
+            } else {
+                scanner.stop();
+                toggleButton.textContent = 'Start Scanner';
+                isScanning = false;
+            }
+        }
+
+        // Mobile Responsive Adjustments
+        window.addEventListener('resize', () => {
+            if (window.innerWidth < 768) {
+                document.getElementById('barcode-preview').style.overflowX = 'auto';
+            }
+        });
+    </script>
+</body>
+</html>
