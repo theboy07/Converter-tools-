@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Counter | Multi-Tool Website</title>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --background-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .tool-title {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+        }
+
+        .word-counter-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        #text-input {
+            width: 100%;
+            height: 200px;
+            padding: 1rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            resize: vertical;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-box {
+            background-color: #e3f2fd;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #1976D2;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .tool-title {
+                font-size: 2rem;
+            }
+
+            .stat-number {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="tool-title">Word Counter</h1>
+        
+        <div class="word-counter-container">
+            <textarea 
+                id="text-input" 
+                placeholder="Start typing or paste your text here..."
+                autofocus
+            ></textarea>
+            
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number" id="word-count">0</div>
+                    <div class="stat-label">Words</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="char-count">0</div>
+                    <div class="stat-label">Characters</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="char-no-spaces">0</div>
+                    <div class="stat-label">Characters (no spaces)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="sentence-count">0</div>
+                    <div class="stat-label">Sentences</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="paragraph-count">0</div>
+                    <div class="stat-label">Paragraphs</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const textInput = document.getElementById('text-input');
+        const counters = {
+            word: document.getElementById('word-count'),
+            char: document.getElementById('char-count'),
+            charNoSpaces: document.getElementById('char-no-spaces'),
+            sentence: document.getElementById('sentence-count'),
+            paragraph: document.getElementById('paragraph-count')
+        };
+
+        textInput.addEventListener('input', updateCounts);
+
+        function updateCounts() {
+            const text = textInput.value.trim();
+            
+            // Word count
+            const words = text.split(/\s+/).filter(word => word.length > 0);
+            counters.word.textContent = text ? words.length : 0;
+
+            // Character counts
+            counters.char.textContent = text.length;
+            counters.charNoSpaces.textContent = text.replace(/\s+/g, '').length;
+
+            // Sentence count
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim());
+            counters.sentence.textContent = sentences.length;
+
+            // Paragraph count
+            const paragraphs = text.split(/\n+/).filter(p => p.trim());
+            counters.paragraph.textContent = paragraphs.length;
+        }
+    </script>
+</body>
+</html>
