@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Tools</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/instascan/1.0.0/instascan.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #f0f8ff;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 0;
+            background-color: #007bff;
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .tool-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        .qr-preview {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        #scanner-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        #preview {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        #scan-result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f5ff;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 20px 0;
+                font-size: 24px;
+            }
+
+            .tool-section {
+                padding: 15px;
+            }
+
+            .button {
+                width: 100%;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>QR Code Tools</h1>
+        </div>
+
+        <!-- QR Code Generator -->
+        <div class="tool-section">
+            <h2 class="section-title">Generate QR Code</h2>
+            <div class="input-group">
+                <input type="text" id="qr-input" placeholder="Enter text or URL">
+                <button class="button" onclick="generateQR()">Generate QR Code</button>
+            </div>
+            <div class="qr-preview">
+                <div id="qrcode"></div>
+                <button class="button" onclick="downloadQR()" id="download-btn" style="display: none;">
+                    Download QR Code
+                </button>
+            </div>
+        </div>
+
+        <!-- QR Code Scanner -->
+        <div class="tool-section">
+            <h2 class="section-title">Scan QR Code</h2>
+            <div id="scanner-container">
+                <video id="preview"></video>
+            </div>
+            <div id="scan-result"></div>
+        </div>
+    </div>
+
+    <script>
+        // QR Code Generator
+        let qrCode = null;
+
+        function generateQR() {
+            const text = document.getElementById('qr-input').value;
+            if (!text) {
+                alert('Please enter text or URL');
+                return;
+            }
+
+            if (qrCode) {
+                qrCode.clear();
+                document.getElementById('qrcode').innerHTML = '';
+            }
+
+            qrCode = new QRCode(document.getElementById('qrcode'), {
+                text: text,
+                width: 256,
+                height: 256,
+                colorDark: "#007bff",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('download-btn').style.display = 'inline-block';
+        }
+
+        function downloadQR() {
+            const canvas = document.querySelector('#qrcode canvas');
+            const img = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = 'qrcode.png';
+            link.href = img;
+            link.click();
+        }
+
+        // QR Code Scanner
+        let scanner = new Instascan.Scanner({
+            video: document.getElementById('preview'),
+            mirror: false
+        });
+
+        scanner.addListener('scan', function(content) {
+            document.getElementById('scan-result').innerHTML = `
+                Scanned Result: <strong>${content}</strong>
+            `;
+        });
+
+        Instascan.Camera.getCameras().then(function(cameras) {
+            if (cameras.length > 0) {
+                scanner.start(cameras[0]);
+            } else {
+                console.error('No cameras found.');
+            }
+        }).catch(function(e) {
+            console.error(e);
+        });
+
+        // Mobile responsiveness
+        window.addEventListener('resize', function() {
+            const preview = document.getElementById('preview');
+            if (preview.videoWidth) {
+                preview.style.height = preview.videoWidth * (9/16) + 'px';
+            }
+        });
+    </script>
+</body>
+</html>
