@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Zone Converter</title>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --secondary-color: #ffffff;
+            --background-color: #f5f9ff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--secondary-color);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .converter-container {
+            display: grid;
+            grid-gap: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        input, select, button {
+            padding: 12px;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--background-color);
+            border-radius: 5px;
+            text-align: center;
+            font-size: 18px;
+            color: #333;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            input, select, button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Time Zone Converter</h1>
+        <div class="converter-container">
+            <div class="input-group">
+                <label for="datetime">Local Date & Time</label>
+                <input type="datetime-local" id="datetime" required>
+            </div>
+            
+            <div class="input-group">
+                <label for="from-timezone">From Time Zone</label>
+                <select id="from-timezone"></select>
+            </div>
+
+            <div class="input-group">
+                <label for="to-timezone">To Time Zone</label>
+                <select id="to-timezone"></select>
+            </div>
+
+            <button onclick="convertTime()">Convert Time</button>
+        </div>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        // Populate time zones
+        const timeZones = Intl.supportedValuesOf('timeZone');
+        const fromSelect = document.getElementById('from-timezone');
+        const toSelect = document.getElementById('to-timezone');
+        const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+        timeZones.forEach(zone => {
+            const option1 = new Option(zone, zone);
+            const option2 = new Option(zone, zone);
+            fromSelect.add(option1);
+            toSelect.add(option2);
+        });
+
+        // Set default time zones
+        fromSelect.value = localTimeZone;
+        toSelect.value = 'UTC';
+
+        function convertTime() {
+            const datetimeInput = document.getElementById('datetime').value;
+            const fromZone = fromSelect.value;
+            const toZone = toSelect.value;
+
+            if (!datetimeInput) {
+                alert('Please select a date and time');
+                return;
+            }
+
+            const localDate = new Date(datetimeInput);
+            const options = {
+                timeZone: toZone,
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+                second: 'numeric'
+            };
+
+            const convertedDate = new Date(localDate.toLocaleString('en-US', { timeZone: fromZone }));
+            const resultString = convertedDate.toLocaleDateString('en-US', options);
+
+            document.getElementById('result').innerHTML = `
+                Converted Time: ${resultString}<br>
+                (${toZone})
+            `;
+        }
+    </script>
+</body>
+</html>
