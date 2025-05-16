@@ -3,13 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Multi-Tool</title>
+    <title>Currency Converter</title>
     <style>
-        :root {
-            --primary-color: #00a8ff;
-            --background-color: #ffffff;
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -18,224 +13,269 @@
         }
 
         body {
-            background-color: var(--background-color);
-            color: #333;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+            background: #007bff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
         }
 
-        .tool-section {
-            background-color: #f5f5f5;
-            border-radius: 10px;
-            padding: 20px;
+        .converter-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            color: #007bff;
+            text-align: center;
             margin-bottom: 30px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 2em;
         }
 
-        h2 {
-            color: var(--primary-color);
+        .converter-group {
+            display: flex;
+            gap: 10px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
-        .converter-form {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+        .input-group {
+            flex: 1;
+            min-width: 200px;
         }
 
-        input, select, button {
+        input, select {
+            width: 100%;
             padding: 12px;
-            border: 2px solid var(--primary-color);
-            border-radius: 5px;
+            border: 2px solid #007bff;
+            border-radius: 8px;
             font-size: 16px;
+            margin-top: 5px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 5px #007bff;
         }
 
         button {
-            background-color: var(--primary-color);
+            background: #007bff;
             color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: opacity 0.3s;
+            font-size: 16px;
+            transition: all 0.3s;
         }
 
         button:hover {
-            opacity: 0.9;
+            background: #0056b3;
+            transform: translateY(-2px);
         }
 
-        .preview-container {
-            max-width: 400px;
-            margin: 20px 0;
+        .swap-btn {
+            background: transparent;
+            color: #007bff;
+            padding: 5px;
+            border-radius: 50%;
+            margin: 0 10px;
         }
 
-        #imagePreview {
-            max-width: 100%;
-            display: none;
-            border-radius: 5px;
+        .swap-btn:hover {
+            background: #f0f8ff;
         }
 
-        .status-text {
-            margin: 10px 0;
-            color: var(--primary-color);
-            font-weight: bold;
+        #result {
+            margin-top: 25px;
+            font-size: 1.4em;
+            text-align: center;
+            padding: 15px;
+            background: #f0f8ff;
+            border-radius: 8px;
+            color: #007bff;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
+        @media (max-width: 480px) {
+            .converter-group {
+                flex-direction: column;
             }
             
-            .tool-section {
-                padding: 15px;
+            .swap-btn {
+                margin: 10px 0;
+                transform: rotate(90deg);
             }
+        }
+
+        datalist {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .loader {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            color: #dc3545 !important;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Currency Converter -->
-        <div class="tool-section">
-            <h2>Currency Converter</h2>
-            <div class="converter-form">
-                <input type="number" id="amount" placeholder="Enter amount" value="1" min="0">
-                <select id="fromCurrency"></select>
-                <select id="toCurrency"></select>
-                <button onclick="convertCurrency()">Convert</button>
-                <div class="status-text" id="conversionResult"></div>
+    <div class="converter-container">
+        <h1>💰 Currency Converter</h1>
+        
+        <div class="input-group">
+            <input type="number" id="amount" placeholder="Enter amount" step="0.01" min="0">
+        </div>
+
+        <div class="converter-group">
+            <div class="input-group">
+                <input list="from-currency" id="from" placeholder="From currency (e.g. USD)">
+            </div>
+            
+            <button class="swap-btn" onclick="swapCurrencies()" title="Swap currencies">⇄</button>
+            
+            <div class="input-group">
+                <input list="to-currency" id="to" placeholder="To currency (e.g. EUR)">
             </div>
         </div>
 
-        <!-- Image Compressor -->
-        <div class="tool-section">
-            <h2>Image Compressor</h2>
-            <input type="file" id="imageInput" accept="image/*">
-            <div class="preview-container">
-                <img id="imagePreview" alt="Preview">
-            </div>
-            <button onclick="compressImage()">Compress Image</button>
-            <div class="status-text" id="compressionStatus"></div>
+        <datalist id="from-currency"></datalist>
+        <datalist id="to-currency"></datalist>
+
+        <div class="loader" id="loader"></div>
+        <div id="result"></div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <button onclick="convertCurrency()">Convert Now</button>
         </div>
     </div>
 
     <script>
-        // SECURITY NOTE: In production, this should be handled through a backend server
-        const API_KEY = 'YOUR_API_KEY_HERE'; // Replace with your server endpoint
+        const API_KEY = '484535c49079088efb9d0a7a';
+        const BASE_URL = 'https://v6.exchangerate-api.com/v6';
+        let currencies = {};
 
-        let currencies = [];
-        let originalFile = null;
-
-        // Fetch currencies on load
+        // Initialize converter
         window.onload = async () => {
             try {
-                const response = await fetch(`https://v6.exchangerate-api.com/v6/${API_KEY}/codes`);
+                const response = await fetch(`${BASE_URL}/${API_KEY}/codes`);
                 const data = await response.json();
-                currencies = data.supported_codes;
-                populateCurrencies();
+                
+                if(data.result === 'success') {
+                    currencies = data.supported_codes.reduce((acc, [code, name]) => {
+                        acc[code] = name;
+                        return acc;
+                    }, {});
+                    populateCurrencyLists();
+                } else {
+                    showError('Failed to load currencies');
+                }
             } catch (error) {
-                console.error('Error loading currencies:', error);
-                document.getElementById('conversionResult').textContent = 
-                    'Failed to load currencies. Please try again later.';
+                showError('Connection error');
             }
         };
 
-        function populateCurrencies() {
-            const fromSelect = document.getElementById('fromCurrency');
-            const toSelect = document.getElementById('toCurrency');
+        function populateCurrencyLists() {
+            const fromList = document.getElementById('from-currency');
+            const toList = document.getElementById('to-currency');
+            
+            // Clear existing options
+            fromList.innerHTML = '';
+            toList.innerHTML = '';
 
-            currencies.forEach(([code, name]) => {
-                const option = new Option(`${code} - ${name}`, code);
-                fromSelect.add(option);
-                toSelect.add(new Option(`${code} - ${name}`, code));
-            });
-
-            // Set defaults
-            fromSelect.value = 'USD';
-            toSelect.value = 'EUR';
+            for (const [code, name] of Object.entries(currencies)) {
+                const option = document.createElement('option');
+                option.value = `${code} - ${name}`;
+                fromList.appendChild(option.cloneNode(true));
+                toList.appendChild(option.cloneNode(true));
+            }
         }
 
         async function convertCurrency() {
             const amount = document.getElementById('amount').value;
-            const from = document.getElementById('fromCurrency').value;
-            const to = document.getElementById('toCurrency').value;
-            const resultElement = document.getElementById('conversionResult');
+            const from = document.getElementById('from').value.split(' - ')[0];
+            const to = document.getElementById('to').value.split(' - ')[0];
 
-            if (!amount || amount <= 0) {
-                resultElement.textContent = 'Please enter a valid amount';
+            if (!amount || isNaN(amount)) {
+                showError('Please enter a valid amount');
                 return;
             }
 
-            try {
-                const response = await fetch(`https://v6.exchangerate-api.com/v6/${API_KEY}/pair/${from}/${to}/${amount}`);
-                const data = await response.json();
+            if (!currencies[from] || !currencies[to]) {
+                showError('Please select valid currencies');
+                return;
+            }
 
-                if (data.result === 'success') {
-                    resultElement.textContent = 
-                        `${amount} ${from} = ${data.conversion_result.toFixed(2)} ${to}`;
+            document.getElementById('loader').style.display = 'block';
+            
+            try {
+                const response = await fetch(`${BASE_URL}/${API_KEY}/pair/${from}/${to}/${amount}`);
+                const data = await response.json();
+                
+                if(data.result === 'success') {
+                    const result = `${parseFloat(amount).toFixed(2)} ${from} = ${data.conversion_result.toFixed(2)} ${to}`;
+                    document.getElementById('result').innerText = result;
                 } else {
-                    resultElement.textContent = 'Conversion error: ' + data['error-type'];
+                    showError(data['error-type'].replace(/-/g, ' '));
                 }
             } catch (error) {
-                resultElement.textContent = 'Error converting currency';
+                showError('Connection error');
+            } finally {
+                document.getElementById('loader').style.display = 'none';
             }
         }
 
-        // Image Compression
-        document.getElementById('imageInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            originalFile = file;
-            
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const preview = document.getElementById('imagePreview');
-                    preview.style.display = 'block';
-                    preview.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
+        function swapCurrencies() {
+            const from = document.getElementById('from').value;
+            const to = document.getElementById('to').value;
+            document.getElementById('from').value = to;
+            document.getElementById('to').value = from;
+        }
+
+        function showError(message) {
+            const resultElement = document.getElementById('result');
+            resultElement.innerText = message;
+            resultElement.classList.add('error');
+            setTimeout(() => {
+                resultElement.classList.remove('error');
+            }, 2000);
+        }
+
+        // Input validation
+        document.getElementById('amount').addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9.]/g, '');
         });
 
-        function compressImage(quality = 0.7) {
-            if (!originalFile) return;
-
-            const preview = document.getElementById('imagePreview');
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-
-            canvas.width = preview.naturalWidth;
-            canvas.height = preview.naturalHeight;
-            ctx.drawImage(preview, 0, 0);
-
-            canvas.toBlob((blob) => {
-                const compressedFile = new File([blob], `compressed_${originalFile.name}`, {
-                    type: 'image/jpeg',
-                    lastModified: Date.now()
-                });
-
-                // Create download
-                const url = URL.createObjectURL(compressedFile);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = compressedFile.name;
-                a.click();
-                URL.revokeObjectURL(url);
-
-                // Update status
-                const compressionRatio = Math.round((1 - (blob.size / originalFile.size)) * 100);
-                document.getElementById('compressionStatus').textContent = 
-                    `Compressed by ${compressionRatio}% (${formatBytes(blob.size)} from ${formatBytes(originalFile.size)})`;
-            }, 'image/jpeg', quality);
-        }
-
-        function formatBytes(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
-        }
+        // Auto-select on currency input focus
+        document.querySelectorAll('input[list]').forEach(input => {
+            input.addEventListener('focus', () => input.select());
+        });
     </script>
 </body>
 </html>
