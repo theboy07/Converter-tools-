@@ -3,248 +3,465 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Tools - Lock/Unlock & Resize</title>
+    <title>Advanced PDF Security Tool</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
     <style>
+        /* Custom Properties */
         :root {
-            --primary-color: #2196F3;
-            --background-color: #ffffff;
+            --primary-blue: #00a8ff;
+            --secondary-blue: #0097e6;
+            --background-white: #ffffff;
+            --error-red: #e84118;
+            --success-green: #4cd137;
+            --text-dark: #2f3640;
+            --border-radius: 8px;
+            --transition-speed: 0.3s;
         }
 
+        /* Base Styles */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         }
 
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f5f5f5;
-            line-height: 1.6;
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            color: var(--text-dark);
         }
 
+        /* Main Container */
         .container {
-            max-width: 1200px;
+            background: var(--background-white);
+            padding: 2.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 800px;
             margin: 2rem auto;
-            padding: 20px;
-            background-color: var(--background-color);
-            border-radius: 10px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
 
+        /* Header Section */
         .tool-header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
         }
 
-        .tool-header h1 {
-            color: var(--primary-color);
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
+        .tool-title {
+            color: var(--primary-blue);
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
         }
 
-        .upload-section {
-            border: 2px dashed var(--primary-color);
-            border-radius: 10px;
-            padding: 2rem;
+        .tool-subtitle {
+            color: var(--text-dark);
+            opacity: 0.8;
+            font-size: 1.1rem;
+        }
+
+        /* Drag & Drop Zone */
+        .drop-zone {
+            border: 3px dashed var(--primary-blue);
+            border-radius: var(--border-radius);
+            padding: 2.5rem 1.5rem;
             text-align: center;
             margin-bottom: 2rem;
-            transition: all 0.3s ease;
+            transition: all var(--transition-speed) ease;
+            position: relative;
+            background: rgba(0, 168, 255, 0.05);
         }
 
-        .upload-section:hover {
-            background-color: rgba(33, 150, 243, 0.05);
+        .drop-zone.active {
+            border-color: var(--secondary-blue);
+            background: rgba(0, 168, 255, 0.1);
         }
 
-        #file-input {
+        .file-input {
             display: none;
         }
 
-        .upload-btn {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            transition: background-color 0.3s ease;
-        }
-
-        .upload-btn:hover {
-            background-color: #1976D2;
-        }
-
-        .dimension-controls {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
+        .upload-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             gap: 1rem;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            width: 60px;
+            height: 60px;
+            fill: var(--primary-blue);
+        }
+
+        /* Password Section */
+        .password-group {
+            display: grid;
+            gap: 1.2rem;
             margin-bottom: 2rem;
         }
 
-        .dimension-input {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+        .password-input {
             width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--primary-blue);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: border-color var(--transition-speed) ease;
         }
 
-        .preview-section {
+        .password-input:focus {
+            outline: none;
+            border-color: var(--secondary-blue);
+        }
+
+        /* Action Buttons */
+        .action-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-btn {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 1.2rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all var(--transition-speed) ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+        }
+
+        .action-btn:hover {
+            background: var(--secondary-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Progress Indicator */
+        .progress-bar {
+            height: 4px;
+            background: rgba(0, 168, 255, 0.2);
+            border-radius: 2px;
+            margin: 1.5rem 0;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: var(--primary-blue);
+            transition: width 0.4s ease;
+        }
+
+        /* File Preview */
+        .preview-container {
             margin-top: 2rem;
             text-align: center;
         }
 
-        #pdf-preview {
+        #pdfPreview {
             width: 100%;
-            height: 500px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-top: 1rem;
+            max-width: 400px;
+            height: 300px;
+            border: 2px solid var(--primary-blue);
+            border-radius: var(--border-radius);
+            margin: 1rem auto;
         }
 
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
+        /* Recent Files */
+        .recent-files {
             margin-top: 2rem;
+            border-top: 2px solid rgba(0,0,0,0.1);
+            padding-top: 1.5rem;
         }
 
-        .processing-btn {
-            background-color: #4CAF50;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .download-btn {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
+        /* Mobile Responsive */
         @media (max-width: 768px) {
             .container {
+                padding: 1.5rem;
                 margin: 1rem;
-                padding: 10px;
             }
 
-            .dimension-controls {
+            .action-group {
                 grid-template-columns: 1fr;
             }
 
-            #pdf-preview {
-                height: 300px;
+            .tool-title {
+                font-size: 1.8rem;
             }
 
-            .action-buttons {
-                flex-direction: column;
+            #pdfPreview {
+                height: 250px;
             }
+        }
+
+        /* Advanced Features */
+        .security-settings {
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-radius: var(--border-radius);
+        }
+
+        .setting-option {
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .error-message {
+            color: var(--error-red);
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .success-message {
+            color: var(--success-green);
+            margin: 1rem 0;
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="tool-header">
-            <h1>PDF Tools</h1>
-            <p>Secure and resize your PDF documents</p>
+        <header class="tool-header">
+            <h1 class="tool-title">PDF Security Pro</h1>
+            <p class="tool-subtitle">Encrypt & Decrypt PDFs with Military-Grade Security</p>
+        </header>
+
+        <div class="drop-zone" id="dropZone">
+            <input type="file" class="file-input" id="pdfInput" accept="application/pdf">
+            <label for="pdfInput" class="upload-label">
+                <svg class="upload-icon" viewBox="0 0 24 24">
+                    <path d="M14,13V17H10V13H7L12,8L17,13M19.35,10.03C18.67,6.59 15.64,4 12,4C9.11,4 6.6,5.64 5.35,8.03C2.34,8.36 0,10.9 0,14A6,6 0 0,0 6,20H19A5,5 0 0,0 24,15C24,12.36 21.95,10.22 19.35,10.03"/>
+                </svg>
+                <span>Drag & Drop PDF or Click to Browse</span>
+            </label>
         </div>
 
-        <div class="upload-section">
-            <input type="file" id="file-input" accept="application/pdf">
-            <button class="upload-btn" onclick="document.getElementById('file-input').click()">
-                Upload PDF File
+        <div class="password-group">
+            <input type="password" class="password-input" id="password" placeholder="Enter Password" autocomplete="current-password">
+            <input type="password" class="password-input" id="confirmPassword" placeholder="Confirm Password" style="display: none;">
+        </div>
+
+        <div class="security-settings">
+            <h3>Security Settings</h3>
+            <div class="setting-option">
+                <input type="checkbox" id="allowPrinting" checked>
+                <label for="allowPrinting">Allow Printing</label>
+            </div>
+            <div class="setting-option">
+                <input type="checkbox" id="allowCopying" checked>
+                <label for="allowCopying">Allow Content Copying</label>
+            </div>
+        </div>
+
+        <div class="action-group">
+            <button class="action-btn" id="lockBtn">
+                🔒 Lock PDF
             </button>
-            <p id="file-name" style="margin-top: 1rem;"></p>
+            <button class="action-btn" id="unlockBtn">
+                🔓 Unlock PDF
+            </button>
         </div>
 
-        <div class="dimension-controls">
-            <input type="number" id="width" class="dimension-input" placeholder="Width (px)">
-            <input type="number" id="height" class="dimension-input" placeholder="Height (px)">
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
         </div>
 
-        <div class="action-buttons">
-            <button class="processing-btn" onclick="processPDF()">Process PDF</button>
-            <button class="download-btn" onclick="downloadPDF()" disabled id="download-btn">Download PDF</button>
-        </div>
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
 
-        <div class="preview-section">
-            <h3>PDF Preview</h3>
-            <embed id="pdf-preview" type="application/pdf">
+        <div class="preview-container">
+            <canvas id="pdfPreview"></canvas>
         </div>
     </div>
 
     <script>
-        let modifiedPdf = null;
+        let currentPDF = null;
+        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-        document.getElementById('file-input').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                document.getElementById('file-name').textContent = file.name;
-                previewPDF(file);
-            }
+        // Drag & Drop Handlers
+        const dropZone = document.getElementById('dropZone');
+        ['dragenter', 'dragover'].forEach(event => {
+            dropZone.addEventListener(event, (e) => {
+                e.preventDefault();
+                dropZone.classList.add('active');
+            });
         });
 
-        async function previewPDF(file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const pdfViewer = document.getElementById('pdf-preview');
-                pdfViewer.src = e.target.result;
-            }
-            reader.readAsDataURL(file);
+        ['dragleave', 'drop'].forEach(event => {
+            dropZone.addEventListener(event, (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('active');
+            });
+        });
+
+        dropZone.addEventListener('drop', handleFileDrop);
+
+        // File Input Handler
+        document.getElementById('pdfInput').addEventListener('change', handleFileSelect);
+
+        async function handleFileSelect(e) {
+            const file = e.target.files[0];
+            await processFile(file);
         }
 
-        async function processPDF() {
-            const file = document.getElementById('file-input').files[0];
-            const width = document.getElementById('width').value;
-            const height = document.getElementById('height').value;
+        async function handleFileDrop(e) {
+            const file = e.dataTransfer.files[0];
+            await processFile(file);
+        }
 
-            if (!file) {
-                alert('Please select a PDF file first!');
+        async function processFile(file) {
+            if (!file) return;
+            
+            if (file.size > MAX_FILE_SIZE) {
+                showError('File size exceeds 10MB limit');
                 return;
             }
 
+            if (file.type !== 'application/pdf') {
+                showError('Please upload a valid PDF file');
+                return;
+            }
+
+            currentPDF = await file.arrayBuffer();
+            showSuccess('PDF loaded successfully');
+            renderPDFPreview(currentPDF);
+            togglePasswordConfirmation('lock');
+        }
+
+        // PDF Preview Renderer
+        async function renderPDFPreview(pdfData) {
+            const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+            const page = await pdf.getPage(1);
+            const viewport = page.getViewport({ scale: 0.5 });
+            const canvas = document.getElementById('pdfPreview');
+            const context = canvas.getContext('2d');
+
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            await page.render({
+                canvasContext: context,
+                viewport: viewport
+            }).promise;
+        }
+
+        // Security Processor
+        async function processSecurity(action) {
+            if (!currentPDF) {
+                showError('Please select a PDF file first');
+                return;
+            }
+
+            const password = document.getElementById('password').value;
+            if (!password) {
+                showError('Password cannot be empty');
+                return;
+            }
+
+            if (action === 'lock') {
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                if (password !== confirmPassword) {
+                    showError('Passwords do not match');
+                    return;
+                }
+            }
+
             try {
-                const pdfData = await file.arrayBuffer();
-                const pdfDoc = await PDFLib.PDFDocument.load(pdfData);
-                const pages = pdfDoc.getPages();
+                toggleProcessingUI(true);
+                const pdfDoc = await PDFLib.PDFDocument.load(currentPDF);
 
-                pages.forEach(page => {
-                    page.setSize(
-                        parseFloat(width) || page.getWidth(),
-                        parseFloat(height) || page.getHeight()
-                    );
-                });
+                if (action === 'lock') {
+                    const permissions = calculatePermissions();
+                    await pdfDoc.encrypt({
+                        password: password,
+                        permissions: permissions
+                    });
+                } else {
+                    await pdfDoc.decrypt(password);
+                }
 
-                const modifiedPdfBytes = await pdfDoc.save();
-                modifiedPdf = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
-                
-                document.getElementById('download-btn').disabled = false;
-                previewPDF(modifiedPdf);
-                alert('PDF processed successfully!');
+                const modifiedPdf = await pdfDoc.save();
+                downloadPDF(modifiedPdf, action);
+                toggleProcessingUI(false);
+                showSuccess(`PDF ${action === 'lock' ? 'locked' : 'unlocked'} successfully`);
+
             } catch (error) {
-                alert('Error processing PDF: ' + error.message);
+                toggleProcessingUI(false);
+                showError(`Processing failed: ${error.message}`);
             }
         }
 
-        function downloadPDF() {
-            if (modifiedPdf) {
-                const url = URL.createObjectURL(modifiedPdf);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'modified-document.pdf';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }
+        // Helper Functions
+        function calculatePermissions() {
+            return {
+                print: document.getElementById('allowPrinting').checked,
+                copy: document.getElementById('allowCopying').checked,
+                modify: false,
+                annotate: false
+            };
         }
+
+        function downloadPDF(pdfBytes, action) {
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${action}_document_${Date.now()}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function togglePasswordConfirmation(action) {
+            const confirmField = document.getElementById('confirmPassword');
+            confirmField.style.display = action === 'lock' ? 'block' : 'none';
+        }
+
+        function toggleProcessingUI(show) {
+            document.querySelector('.progress-bar').style.display = show ? 'block' : 'none';
+            document.querySelector('.progress-fill').style.width = show ? '90%' : '0%';
+            document.querySelectorAll('.action-btn').forEach(btn => btn.disabled = show);
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            setTimeout(() => errorEl.style.display = 'none', 5000);
+        }
+
+        function showSuccess(message) {
+            const successEl = document.getElementById('successMessage');
+            successEl.textContent = message;
+            successEl.style.display = 'block';
+            setTimeout(() => successEl.style.display = 'none', 5000);
+        }
+
+        // Event Listeners
+        document.getElementById('lockBtn').addEventListener('click', () => processSecurity('lock'));
+        document.getElementById('unlockBtn').addEventListener('click', () => processSecurity('unlock'));
     </script>
 </body>
-  </html>
+</html>
