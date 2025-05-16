@@ -3,314 +3,279 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Tool - Calculator & Image Compressor</title>
+    <title>Scientific Calculator | TechMultiTools</title>
     <style>
         :root {
-            --primary-color: #00a8ff;
-            --background-color: #f5f6fa;
+            --primary-blue: #2196f3;
+            --operator-orange: #ff9800;
+            --scientific-green: #4caf50;
+            --clear-red: #f44336;
+            --equals-purple: #9c27b0;
+            --toggle-cyan: #00bcd4;
+            --number-blue: #64b5f6;
         }
 
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
         }
 
         body {
-            background-color: var(--background-color);
+            background: #f0f8ff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             padding: 20px;
         }
 
-        .tool-container {
-            max-width: 1200px;
-            margin: 0 auto;
+        .tool-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
             background: white;
             border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            padding: 20px;
+            width: 100%;
+            max-width: 800px;
         }
 
-        .tool-tabs {
-            display: flex;
-            margin-bottom: 20px;
+        .calculator-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            width: 100%;
+            max-width: 1200px;
         }
 
-        .tool-tab {
-            padding: 15px 30px;
-            background: #e6f4ff;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            color: var(--primary-color);
-            border-radius: 8px;
-            margin-right: 10px;
-            transition: all 0.3s;
-        }
-
-        .tool-tab.active {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        /* Calculator Styles */
         .calculator {
-            display: none;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            max-width: 500px;
-            margin: 0 auto;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            width: 100%;
         }
 
-        .calculator.active {
+        #display {
+            width: 100%;
+            height: 90px;
+            margin-bottom: 25px;
+            padding: 20px;
+            font-size: 2.4em;
+            text-align: right;
+            border: 3px solid var(--primary-blue);
+            border-radius: 10px;
+            background: #e3f2fd;
+            color: #1976d2;
+            overflow-x: auto;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        button {
+            padding: 20px;
+            font-size: 1.3em;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: filter 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .number { background: var(--number-blue); }
+        .operator { background: var(--operator-orange); }
+        .scientific { background: var(--scientific-green); }
+        .clear { background: var(--clear-red); }
+        .equals { 
+            background: var(--equals-purple);
+            grid-column: 2 / span 2;
+        }
+        .toggle-advanced {
+            background: var(--toggle-cyan);
+            grid-column: span 2;
+        }
+
+        .backspace-icon {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        .history-panel {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .advanced-functions {
+            display: none;
+            grid-column: 1 / -1;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .advanced-visible .advanced-functions {
             display: grid;
         }
 
-        #calc-display {
-            grid-column: 1 / -1;
-            height: 60px;
-            font-size: 24px;
-            padding: 15px;
-            border: 2px solid var(--primary-color);
-            border-radius: 8px;
-            margin-bottom: 10px;
-            text-align: right;
-        }
-
-        .calc-btn {
-            padding: 20px;
-            font-size: 18px;
-            border: none;
-            border-radius: 8px;
-            background: #e6f4ff;
-            color: var(--primary-color);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .calc-btn:hover {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        /* Image Compressor Styles */
-        .image-compressor {
-            display: none;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .image-compressor.active {
-            display: block;
-        }
-
-        .upload-container {
-            border: 2px dashed var(--primary-color);
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        #image-preview {
-            max-width: 100%;
-            max-height: 400px;
-            margin: 20px 0;
-            display: none;
-        }
-
-        .compression-controls {
-            margin-top: 20px;
-        }
-
-        .slider-container {
-            margin: 15px 0;
-        }
-
-        .download-btn {
-            background: var(--primary-color);
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: opacity 0.3s;
-        }
-
-        .download-btn:hover {
-            opacity: 0.9;
-        }
-
         @media (max-width: 768px) {
-            .calculator {
-                grid-template-columns: repeat(3, 1fr);
-            }
-
-            .calc-btn {
-                padding: 15px;
-                font-size: 16px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .tool-tab {
-                padding: 10px 20px;
-                font-size: 14px;
-            }
-
-            .calculator {
-                grid-template-columns: repeat(2, 1fr);
+            .calculator-container {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <div class="tool-container">
-        <div class="tool-tabs">
-            <button class="tool-tab active" onclick="switchTab('calculator')">Calculator</button>
-            <button class="tool-tab" onclick="switchTab('compressor')">Image Compressor</button>
-        </div>
+    <header class="tool-header">
+        <h1>🔬 TechMultiTools Scientific Calculator</h1>
+        <p>Advanced scientific calculator with history tracking</p>
+    </header>
 
-        <!-- Scientific Calculator -->
-        <div class="calculator active" id="calculator">
-            <input type="text" id="calc-display" readonly>
-            <button class="calc-btn" onclick="clearDisplay()">C</button>
-            <button class="calc-btn" onclick="appendToDisplay('(')">(</button>
-            <button class="calc-btn" onclick="appendToDisplay(')')">)</button>
-            <button class="calc-btn" onclick="appendToDisplay('/')">/</button>
-            <button class="calc-btn" onclick="appendToDisplay('7')">7</button>
-            <button class="calc-btn" onclick="appendToDisplay('8')">8</button>
-            <button class="calc-btn" onclick="appendToDisplay('9')">9</button>
-            <button class="calc-btn" onclick="appendToDisplay('*')">×</button>
-            <button class="calc-btn" onclick="appendToDisplay('4')">4</button>
-            <button class="calc-btn" onclick="appendToDisplay('5')">5</button>
-            <button class="calc-btn" onclick="appendToDisplay('6')">6</button>
-            <button class="calc-btn" onclick="appendToDisplay('-')">-</button>
-            <button class="calc-btn" onclick="appendToDisplay('1')">1</button>
-            <button class="calc-btn" onclick="appendToDisplay('2')">2</button>
-            <button class="calc-btn" onclick="appendToDisplay('3')">3</button>
-            <button class="calc-btn" onclick="appendToDisplay('+')">+</button>
-            <button class="calc-btn" onclick="appendToDisplay('0')">0</button>
-            <button class="calc-btn" onclick="appendToDisplay('.')">.</button>
-            <button class="calc-btn" onclick="calculate()">=</button>
-            <button class="calc-btn" onclick="appendToDisplay('Math.sin(')">sin</button>
-            <button class="calc-btn" onclick="appendToDisplay('Math.cos(')">cos</button>
-            <button class="calc-btn" onclick="appendToDisplay('Math.tan(')">tan</button>
-            <button class="calc-btn" onclick="appendToDisplay('Math.log(')">ln</button>
-            <button class="calc-btn" onclick="appendToDisplay('Math.sqrt(')">√</button>
-            <button class="calc-btn" onclick="appendToDisplay('**')">^</button>
-            <button class="calc-btn" onclick="appendToDisplay('Math.PI')">π</button>
-        </div>
+    <div class="calculator-container">
+        <section class="calculator">
+            <h2>Scientific Calculator</h2>
+            <input type="text" id="display" readonly>
+            <div class="buttons">
+                <!-- First Row -->
+                <button class="toggle-advanced" onclick="toggleAdvanced()">Show Advanced</button>
+                <button class="scientific" onclick="addToDisplay('Math.sqrt(')">√</button>
+                <button class="operator" onclick="addToDisplay('/')">/</button>
 
-        <!-- Image Compressor -->
-        <div class="image-compressor" id="compressor">
-            <div class="upload-container">
-                <input type="file" id="image-input" accept="image/*" onchange="handleImageUpload(event)">
-                <p>Drag and drop or click to upload an image</p>
-                <img id="image-preview" alt="Preview">
-            </div>
-            <div class="compression-controls">
-                <div class="slider-container">
-                    <label>Quality: <span id="quality-value">80</span>%</label>
-                    <input type="range" id="quality-slider" min="1" max="100" value="80" oninput="updateQuality(this.value)">
+                <!-- Number Rows -->
+                <button class="number" onclick="addToDisplay('7')">7</button>
+                <button class="number" onclick="addToDisplay('8')">8</button>
+                <button class="number" onclick="addToDisplay('9')">9</button>
+                <button class="operator" onclick="addToDisplay('*')">×</button>
+
+                <button class="number" onclick="addToDisplay('4')">4</button>
+                <button class="number" onclick="addToDisplay('5')">5</button>
+                <button class="number" onclick="addToDisplay('6')">6</button>
+                <button class="operator" onclick="addToDisplay('-')">-</button>
+
+                <button class="number" onclick="addToDisplay('1')">1</button>
+                <button class="number" onclick="addToDisplay('2')">2</button>
+                <button class="number" onclick="addToDisplay('3')">3</button>
+                <button class="operator" onclick="addToDisplay('+')">+</button>
+
+                <!-- Bottom Row -->
+                <button class="number" onclick="addToDisplay('.')">.</button>
+                <button class="number" onclick="addToDisplay('0')">0</button>
+                <button class="operator" onclick="deleteLast()">
+                    <svg class="backspace-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/>
+                    </svg>
+                </button>
+                <button class="clear" onclick="clearDisplay()">C</button>
+
+                <!-- Equals Button -->
+                <button class="equals" onclick="calculate()">=</button>
+
+                <!-- Advanced Functions -->
+                <div class="advanced-functions">
+                    <button class="scientific" onclick="addToDisplay('Math.log10(')">log₁₀</button>
+                    <button class="scientific" onclick="addToDisplay('Math.sin(')">sin</button>
+                    <button class="scientific" onclick="addToDisplay('Math.cos(')">cos</button>
+                    <button class="scientific" onclick="addToDisplay('Math.tan(')">tan</button>
+                    <button class="scientific" onclick="addToDisplay('Math.abs(')">abs</button>
+                    <button class="scientific" onclick="addToDisplay('Math.exp(')">exp</button>
+                    <button class="scientific" onclick="addToDisplay('Math.PI')">π</button>
+                    <button class="scientific" onclick="addToDisplay('Math.E')">e</button>
+                    <button class="operator" onclick="addToDisplay('!')">n!</button>
+                    <button class="scientific" onclick="addToDisplay('Math.pow(')">x^y</button>
+                    <button class="operator" onclick="addToDisplay('%')">%</button>
                 </div>
-                <button class="download-btn" onclick="compressAndDownload()">Download Compressed Image</button>
             </div>
-        </div>
+        </section>
+
+        <section class="history-panel">
+            <h3>Calculation History</h3>
+            <div id="history-list"></div>
+            <button class="clear" onclick="clearHistory()">Clear History</button>
+        </section>
     </div>
 
     <script>
-        // Tab Switching
-        function switchTab(tabName) {
-            document.querySelectorAll('.tool-tab, .calculator, .image-compressor').forEach(el => {
-                el.classList.remove('active');
-            });
-            document.getElementById(tabName).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
+        const display = document.getElementById('display');
+        let history = [];
+        let advancedVisible = false;
 
-        // Calculator Functions
-        let display = document.getElementById('calc-display');
-
-        function appendToDisplay(value) {
-            display.value += value;
+        function addToDisplay(value) {
+            const specialValues = { 
+                'π': Math.PI, 
+                'e': Math.E 
+            };
+            display.value += specialValues[value] || value;
         }
 
         function clearDisplay() {
             display.value = '';
         }
 
+        function deleteLast() {
+            display.value = display.value.slice(0, -1);
+        }
+
         function calculate() {
             try {
-                display.value = eval(display.value);
+                let expression = display.value
+                    .replace(/Math\.(\w+?)\(/g, '$1(')
+                    .replace(/(\d+)!/g, 'factorial($1)')
+                    .replace(/π/g, Math.PI)
+                    .replace(/e/g, Math.E);
+
+                const result = new Function(`
+                    'use strict';
+                    const { PI, E, sin, cos, tan, log, log10, sqrt, pow, abs, exp } = Math;
+                    function factorial(n) {
+                        if (n < 0) throw new Error();
+                        return n <= 1 ? 1 : n * factorial(n - 1);
+                    }
+                    return ${expression};
+                `)();
+
+                display.value = result;
+                history.unshift(`${expression} = ${result}`);
+                updateHistory();
             } catch (error) {
                 display.value = 'Error';
+                setTimeout(clearDisplay, 1000);
             }
         }
 
-        // Image Compression Functions
-        let currentImage = null;
-        let compressionQuality = 0.8;
-
-        function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.getElementById('image-preview');
-                    img.src = e.target.result;
-                    img.style.display = 'block';
-                    currentImage = img;
-                }
-                reader.readAsDataURL(file);
-            }
+        function toggleAdvanced() {
+            advancedVisible = !advancedVisible;
+            document.querySelector('.buttons').classList.toggle('advanced-visible');
+            document.querySelector('.toggle-advanced').textContent =
+                advancedVisible ? 'Hide Advanced' : 'Show Advanced';
         }
 
-        function updateQuality(value) {
-            compressionQuality = value / 100;
-            document.getElementById('quality-value').textContent = value;
+        function clearHistory() {
+            history = [];
+            updateHistory();
         }
 
-        function compressAndDownload() {
-            if (!currentImage) return;
-
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            canvas.width = currentImage.naturalWidth;
-            canvas.height = currentImage.naturalHeight;
-            ctx.drawImage(currentImage, 0, 0);
-
-            canvas.toBlob((blob) => {
-                const link = document.createElement('a');
-                link.download = 'compressed-image.jpg';
-                link.href = URL.createObjectURL(blob);
-                link.click();
-                URL.revokeObjectURL(link.href);
-            }, 'image/jpeg', compressionQuality);
+        function updateHistory() {
+            document.getElementById('history-list').innerHTML = 
+                history.map(entry => `<div>${entry}</div>`).join('');
         }
 
-        // Drag and Drop Handling
-        const uploadContainer = document.querySelector('.upload-container');
-        
-        uploadContainer.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadContainer.style.backgroundColor = '#e6f4ff';
-        });
-
-        uploadContainer.addEventListener('dragleave', () => {
-            uploadContainer.style.backgroundColor = 'white';
-        });
-
-        uploadContainer.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadContainer.style.backgroundColor = 'white';
-            const file = e.dataTransfer.files[0];
-            if (file && file.type.startsWith('image/')) {
-                handleImageUpload({ target: { files: [file] } });
-            }
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') calculate();
+            if (e.key === 'Escape') clearDisplay();
+            if (e.key === 'Backspace') deleteLast();
+            if ('0123456789.+-*/%^()'.includes(e.key)) addToDisplay(e.key);
         });
     </script>
 </body>
-  </html>
+</html>
